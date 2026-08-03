@@ -31,7 +31,7 @@ By submitting a pull request, you confirm that:
 
 ## AI-Generated Code
 
-AI-assisted development is permitted.
+AI-assisted development is permitted. Low-quality, unreviewed AI-generated code ("AI slop") will not be accepted.
 
 If you submit code that was generated or significantly assisted by AI tools, you remain responsible for ensuring that:
 

@@ -3,7 +3,7 @@ package com.melashkov.mcparking.parkingBays
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
@@ -12,7 +12,7 @@ import org.maplibre.spatialk.geojson.Position
 
 @Composable
 fun ParkingBaysMap(
-    vm: MapViewModel = viewModel()
+    vm: MapViewModel = koinViewModel()
 ) {
     val camera =
         rememberCameraState(

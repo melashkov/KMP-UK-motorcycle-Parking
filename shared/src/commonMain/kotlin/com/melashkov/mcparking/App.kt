@@ -3,11 +3,23 @@ package com.melashkov.mcparking
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
+import com.melashkov.mcparking.di.KoinApp
 import com.melashkov.mcparking.parkingBays.ParkingBaysMap
+import org.koin.compose.KoinApplication
+import org.koin.plugin.module.dsl.koinConfiguration
+
+@Preview
+@Composable
+fun App() {
+    KoinApplication(
+        configuration = koinConfiguration<KoinApp>()
+    ) {
+        AppContent()
+    }
+}
 
 @Composable
-@Preview
-fun App() {
+fun AppContent() {
     MaterialTheme {
         ParkingBaysMap()
     }

@@ -1,8 +1,11 @@
 package com.melashkov.mcparking.parkingBays
 
 import androidx.lifecycle.ViewModel
+import com.melashkov.mcparking.data.LocationsRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.ViewModelScope
 import org.maplibre.compose.camera.CameraPosition
 
 sealed interface MapUiEvent {
@@ -12,8 +15,10 @@ sealed interface MapUiEvent {
     ) : MapUiEvent
 }
 
-
-class MapViewModel : ViewModel() {
+@KoinViewModel
+class MapViewModel(
+    private val repository: LocationsRepository
+) : ViewModel() {
     private val _events = Channel<MapUiEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
@@ -22,4 +27,6 @@ class MapViewModel : ViewModel() {
         println("onMapCentreChanged $position")
     }
 
+    val userName: String
+        get() = repository.getUserName()
 }

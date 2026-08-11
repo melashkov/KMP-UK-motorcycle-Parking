@@ -13,6 +13,8 @@ composeMultiplatform = "1.11.1"
 junit = "4.13.2"
 kotlin = "2.4.10"
 material3 = "1.11.0-alpha07"
+koin-bom = "4.2.2"  # Stable version
+koin-plugin = "1.1.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -33,6 +35,15 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version = "0.13.1" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-annotations = { module = "io.insert-koin:koin-annotations" }
+koin-android = { module = "io.insert-koin:koin-android" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-compose = { module = "io.insert-koin:koin-compose" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
+koin-ktor = { module = "io.insert-koin:koin-ktor" }
+koin-test = { module = "io.insert-koin:koin-test" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -41,3 +52,4 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.4" } # Use the latest compatible version
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin" }

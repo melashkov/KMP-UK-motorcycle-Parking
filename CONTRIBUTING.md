@@ -26,14 +26,17 @@ Before submitting a pull request:
 By submitting a pull request, you confirm that:
 
 * You wrote the contributed code yourself or have the right to submit it.
-* You grant the project owner a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, modify, distribute, and sublicense your contribution as part of this project.
+* You grant the project owner a perpetual, worldwide, non-exclusive, royalty-free, irrevocable
+  license to use, modify, distribute, and sublicense your contribution as part of this project.
 * You retain the copyright to your own contribution unless you explicitly assign it in writing.
 
 ## AI-Generated Code
 
-AI-assisted development is permitted. Low-quality, unreviewed AI-generated code ("AI slop") will not be accepted.
+AI-assisted development is permitted. Low-quality, unreviewed AI-generated code ("AI slop") will not
+be accepted.
 
-If you submit code that was generated or significantly assisted by AI tools, you remain responsible for ensuring that:
+If you submit code that was generated or significantly assisted by AI tools, you remain responsible
+for ensuring that:
 
 * You have reviewed and understood the code.
 * The code is correct, secure, and maintainable.

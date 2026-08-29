@@ -47,7 +47,7 @@ class BaysMapViewModel(
 ) : ViewModel() {
 
     val firstPosition =
-        CameraPosition(target = Position(latitude = 45.521, longitude = -122.675), zoom = 13.0)
+        CameraPosition(target = Position(latitude = 51.512682148762195, longitude = -0.0904589182234332), zoom = 13.0)
 
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState = _uiState.asStateFlow()

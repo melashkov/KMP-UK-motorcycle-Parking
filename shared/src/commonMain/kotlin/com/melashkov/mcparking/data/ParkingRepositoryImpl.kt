@@ -1,7 +1,7 @@
 package com.melashkov.mcparking.data
 
 import com.melashkov.mcparking.data.remote.ParkingRemoteDataSource
-import com.melashkov.mcparking.data.remote.toDomain
+import com.melashkov.mcparking.data.remote.dto.toDomain
 import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.interfaces.DataError
@@ -24,7 +24,7 @@ class ParkingRepositoryImpl(
             val response = remote.getParkingBays(bounds)
 
             DataResult.Success(
-                response.map { it.toDomain() }
+                response.results.map { it.toDomain() }
             )
         } catch (e: IOException) {
             DataResult.Failure(DataError.Offline)

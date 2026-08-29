@@ -8,6 +8,9 @@ import com.melashkov.mcparking.domain.interfaces.DataError
 import com.melashkov.mcparking.domain.usecases.SearchParkingBaysUseCase
 import com.melashkov.mcparking.domain.usecases.SearchParkingResult
 import com.melashkov.mcparking.domain.usecases.ShouldShowSearchThisAreaUseCase
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +28,7 @@ sealed interface MapUiEvent {
 }
 
 data class MapUiState(
-    val parkingBays: List<ParkingBay> = emptyList(),
+    val parkingBays: ImmutableList<ParkingBay> = persistentListOf(),
     val isLoading: Boolean = false,
     val showSearchThisArea: Boolean = false,
     val error: MapUiError? = null,
@@ -90,7 +93,7 @@ class BaysMapViewModel(
                 is SearchParkingResult.Success -> {
                     _uiState.update {
                         it.copy(
-                            parkingBays = result.bays,
+                            parkingBays = result.bays.toImmutableList(),
                             isLoading = false,
                             showSearchThisArea = false,
                             error = null,

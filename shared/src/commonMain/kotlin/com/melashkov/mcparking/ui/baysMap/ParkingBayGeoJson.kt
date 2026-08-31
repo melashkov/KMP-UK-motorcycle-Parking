@@ -10,7 +10,6 @@ import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
 import org.maplibre.spatialk.geojson.Position
 
-internal const val PARKING_BAY_ID = "parking_bay_id"
 internal const val PARKING_BAY_FEATURE_ID = "parking_bay_feature_id"
 internal const val PARKING_BAY_TYPE = "parking_bay_type"
 
@@ -22,7 +21,6 @@ internal fun List<ParkingBay>.toFeatureCollection(): FeatureCollection<Point, Js
                 geometry = Point(Position(bay.position.longitude, bay.position.latitude)),
                 properties = buildJsonObject {
                     put(PARKING_BAY_FEATURE_ID, bay.id)
-                    put(PARKING_BAY_ID, bay.id)
                     put(PARKING_BAY_TYPE, bay.type.value)
                     put("title", bay.title)
                 },

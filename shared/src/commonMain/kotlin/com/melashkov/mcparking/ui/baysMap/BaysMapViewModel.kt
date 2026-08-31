@@ -58,6 +58,24 @@ class BaysMapViewModel(
     private val _events = Channel<MapUiEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
+    private var hasSearchedInitialArea = false
+
+    fun searchInitialArea(viewport: MapViewport) {
+        if (hasSearchedInitialArea) {
+            onMapViewportChanged(viewport)
+            return
+        }
+
+        hasSearchedInitialArea = true
+        _uiState.update {
+            it.copy(
+                currentViewport = viewport,
+                showSearchThisArea = false,
+            )
+        }
+        searchCurrentArea()
+    }
+
     fun onMapViewportChanged(viewport: MapViewport) {
         _uiState.update { state ->
             state.copy(
@@ -71,6 +89,8 @@ class BaysMapViewModel(
     }
 
     fun searchCurrentArea() {
+        if (_uiState.value.isLoading) return
+
         _uiState.update {
             it.copy(showSearchThisArea = false)
         }
@@ -85,7 +105,11 @@ class BaysMapViewModel(
             val viewport = _uiState.value.currentViewport
             if (viewport == null) {
                 _uiState.update {
-                    it.copy(error = MapUiError.Unknown)
+                    it.copy(
+                        isLoading = false,
+                        showSearchThisArea = true,
+                        error = MapUiError.Unknown,
+                    )
                 }
                 return@launch
             }
@@ -105,6 +129,7 @@ class BaysMapViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            showSearchThisArea = true,
                             error = MapUiError.ZoomInToSearch,
                         )
                     }
@@ -114,6 +139,7 @@ class BaysMapViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            showSearchThisArea = true,
                             error = result.error.toUiError(),
                         )
                     }

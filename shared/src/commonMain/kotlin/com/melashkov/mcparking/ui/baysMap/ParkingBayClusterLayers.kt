@@ -3,9 +3,10 @@ package com.melashkov.mcparking.ui.baysMap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.maplibre.compose.expressions.dsl.asNumber
-import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.step
 import org.maplibre.compose.layers.CircleLayer
@@ -28,15 +29,20 @@ internal fun ParkingBayClusterLayers(
         id = "parking-bay-clusters",
         source = source,
         filter = feature.has("point_count"),
-        radius = step(pointCount, const(14.dp), 25 to const(20.dp), 100 to const(28.dp)),
+        radius = step(
+            pointCount,
+            const(14.dp),
+            25 to const(20.dp),
+            100 to const(28.dp),
+        ),
         color = step(
             pointCount,
             const(Color(0xFF4FC3F7)),
             25 to const(Color(0xFFFFB74D)),
             100 to const(Color(0xFFE57373)),
         ),
-        opacity = const(0.85f),
-        strokeWidth = const(1.dp),
+        opacity = const(0.9f),
+        strokeWidth = const(2.dp),
         strokeColor = const(Color.White),
         onClick = { features ->
             val point = features.firstOrNull()?.geometry as? Point
@@ -53,7 +59,13 @@ internal fun ParkingBayClusterLayers(
         id = "parking-bay-cluster-counts",
         source = source,
         filter = feature.has("point_count"),
-        textField = feature["point_count_abbreviated"].asString(),
-        textColor = const(Color.Black),
+        textField = feature["point_count_abbreviated"].convertToString(),
+        textColor = const(Color.White),
+        textHaloColor = const(Color.Black),
+        textHaloWidth = const(1.dp),
+        textSize = const(14.sp),
+        textFont = const(listOf("Noto Sans Regular")),
+        textAllowOverlap = const(true),
+        textIgnorePlacement = const(true),
     )
 }

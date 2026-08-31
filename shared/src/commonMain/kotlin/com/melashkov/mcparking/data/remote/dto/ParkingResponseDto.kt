@@ -19,7 +19,6 @@ fun LocationDto.toDomain() =
         id = id.toString(),
         title = title,
         type = ParkingType.fromInt(type),
-        sector = sector,
         position = GeoCoordinate(
             latitude = latitude,
             longitude = longitude,

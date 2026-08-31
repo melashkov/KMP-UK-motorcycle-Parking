@@ -12,6 +12,14 @@ plugins {
     alias(libs.plugins.koin.compiler)
 }
 
+configurations.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.maplibre.gl:android-sdk"))
+            .using(module("org.maplibre.gl:android-sdk-opengl:13.0.2"))
+            .because("Runtime GeoJSON layers do not render correctly with Vulkan on target Android devices")
+    }
+}
+
 kotlin {
     listOf(
         iosArm64(),

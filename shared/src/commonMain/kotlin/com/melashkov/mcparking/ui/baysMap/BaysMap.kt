@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
+import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
 import com.melashkov.mcparking.ui.shared.UserLocation
 import kotlinx.coroutines.FlowPreview
@@ -52,11 +53,18 @@ fun BaysMap(
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
     var locateRequest by remember { mutableIntStateOf(0) }
+    var selectedBay by remember { mutableStateOf<ParkingBay?>(null) }
 
     LaunchedEffect(locationPermission.granted, locationPermission) {
         if (locationPermission.granted && locateWhenGranted) {
             locateWhenGranted = false
             locateRequest++
+        }
+    }
+
+    LaunchedEffect(uiState.parkingBays) {
+        selectedBay = selectedBay?.let { selected ->
+            uiState.parkingBays.firstOrNull { it.id == selected.id }
         }
     }
 
@@ -70,6 +78,10 @@ fun BaysMap(
     }
 
     LaunchedEffect(cameraState) {
+        cameraState.awaitProjection()
+        cameraState.currentViewport()
+            ?.let(vm::searchInitialArea)
+
         snapshotFlow { cameraState.isCameraMoving }
             .dropWhile { !it }
             .filter { !it }
@@ -86,7 +98,10 @@ fun BaysMap(
             ),
             cameraState = cameraState
         ) {
-            ParkingBayMarkers(uiState.parkingBays)
+            ParkingBayMarkers(
+                markers = uiState.parkingBays,
+                onMarkerClick = { selectedBay = it },
+            )
 
             if (locationPermission.granted) {
                 UserLocation(
@@ -137,6 +152,13 @@ fun BaysMap(
                 contentDescription = "My location",
             )
         }
+    }
+
+    selectedBay?.let { bay ->
+        ParkingBayDetailsSheet(
+            bay = bay,
+            onDismissRequest = { selectedBay = null },
+        )
     }
 }
 

@@ -1,16 +1,19 @@
 package com.melashkov.mcparking.ui.baysMap
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,23 +21,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
-import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
 import com.melashkov.mcparking.ui.shared.UserLocation
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
-import org.koin.compose.viewmodel.koinViewModel
+import kotlinx.coroutines.launch
+import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
@@ -44,16 +46,14 @@ import org.maplibre.spatialk.geojson.Position
 @OptIn(FlowPreview::class)
 @Composable
 fun BaysMap(
-    vm: BaysMapViewModel = koinViewModel()
+    uiState: MapUiState
 ) {
-    val uiState by vm.uiState.collectAsStateWithLifecycle()
-
-    val cameraState = rememberCameraState(firstPosition = vm.firstPosition)
+    val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
+    val coroutineScope = rememberCoroutineScope()
 
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
     var locateRequest by remember { mutableIntStateOf(0) }
-    var selectedBay by remember { mutableStateOf<ParkingBay?>(null) }
 
     LaunchedEffect(locationPermission.granted, locationPermission) {
         if (locationPermission.granted && locateWhenGranted) {
@@ -62,32 +62,17 @@ fun BaysMap(
         }
     }
 
-    LaunchedEffect(uiState.parkingBays) {
-        selectedBay = selectedBay?.let { selected ->
-            uiState.parkingBays.firstOrNull { it.id == selected.id }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        vm.events.collect { event ->
-            when (event) {
-                is MapUiEvent.MoveCamera ->
-                    cameraState.animateTo(event.position)
-            }
-        }
-    }
-
     LaunchedEffect(cameraState) {
         cameraState.awaitProjection()
         cameraState.currentViewport()
-            ?.let(vm::searchInitialArea)
+            ?.let { uiState.eventSink(MapUiEvent.InitialViewport(it)) }
 
         snapshotFlow { cameraState.isCameraMoving }
             .dropWhile { !it }
             .filter { !it }
             .collect {
                 cameraState.currentViewport()
-                    ?.let(vm::onMapViewportChanged)
+                    ?.let { uiState.eventSink(MapUiEvent.ViewportChanged(it)) }
             }
     }
 
@@ -100,7 +85,20 @@ fun BaysMap(
         ) {
             ParkingBayMarkers(
                 markers = uiState.parkingBays,
-                onMarkerClick = { selectedBay = it },
+                onMarkerClick = {
+                    uiState.eventSink(MapUiEvent.SelectedBay(it))
+                },
+                onClusterClick = { clusterPosition ->
+                    coroutineScope.launch {
+                        cameraState.animateTo(
+                            cameraState.position.copy(
+                                target = clusterPosition,
+                                zoom = (cameraState.position.zoom + ClusterZoomIncrement)
+                                    .coerceAtMost(MaxClusterTapZoom),
+                            ),
+                        )
+                    }
+                },
             )
 
             if (locationPermission.granted) {
@@ -113,54 +111,86 @@ fun BaysMap(
 
         SearchThisAreaButton(
             show = uiState.showSearchThisArea,
-            onClick = vm::searchCurrentArea,
+            onClick = {
+                uiState.eventSink(MapUiEvent.SearchCurrentArea)
+            },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(top = 12.dp),
         )
 
-        Surface(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(12.dp),
-            color = Color.White.copy(alpha = 0.9f),
-        ) {
-            Text(
-                text = "Zoom: ${cameraState.position.zoom}\nBays: ${uiState.parkingBays.size}\nClusters to zoom: 14",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                color = Color.Black,
-            )
-        }
-
-        FloatingActionButton(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp),
-            onClick = {
-                if (locationPermission.granted) {
-                    locateRequest++
-                } else {
-                    locateWhenGranted = true
-                    locationPermission.request()
-                }
-            }
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Icon(
-                imageVector = Icons.Default.MyLocation,
-                contentDescription = "My location",
+            SmallFloatingActionButton(
+                onClick = {
+                    if (locationPermission.granted) {
+                        locateRequest++
+                    } else {
+                        locateWhenGranted = true
+                        locationPermission.request()
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = "My location",
+                )
+            }
+
+            ExtendedFloatingActionButton(
+                onClick = {
+                    uiState.eventSink(MapUiEvent.AddBay)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.AddLocationAlt,
+                        contentDescription = null,
+                    )
+                },
+                text = { Text("Add bay") },
             )
         }
     }
 
-    selectedBay?.let { bay ->
+    uiState.selectedBay?.let { bay ->
         ParkingBayDetailsSheet(
             bay = bay,
-            onDismissRequest = { selectedBay = null },
+            onDismissRequest = {
+                uiState.eventSink(MapUiEvent.DismissBayDetails)
+            },
+            onNavigate = {
+                uiState.eventSink(MapUiEvent.NavigateToBay(bay))
+            },
+            onShare = {
+                uiState.eventSink(MapUiEvent.ShareBay(bay))
+            },
+            onSuggestEdit = {
+                uiState.eventSink(MapUiEvent.SuggestEdit(bay))
+            },
+            onStreetView = {
+                uiState.eventSink(MapUiEvent.OpenStreetView(bay))
+            },
         )
     }
 }
+
+private val InitialCameraPosition = CameraPosition(
+    target = Position(
+        latitude = 51.512682148762195,
+        longitude = -0.0904589182234332,
+    ),
+    zoom = 13.0,
+)
+
+private const val ClusterZoomIncrement = 2.0
+private const val MaxClusterTapZoom = 15.0
 
 
 private fun CameraState.currentViewport(): MapViewport? {

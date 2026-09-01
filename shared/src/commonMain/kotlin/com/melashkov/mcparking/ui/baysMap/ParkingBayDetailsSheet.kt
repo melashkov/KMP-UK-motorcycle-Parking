@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,14 +18,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Streetview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.ParkingBay
@@ -35,6 +44,10 @@ import com.melashkov.mcparking.domain.entity.ParkingType
 internal fun ParkingBayDetailsSheet(
     bay: ParkingBay,
     onDismissRequest: () -> Unit,
+    onNavigate: () -> Unit,
+    onShare: () -> Unit,
+    onSuggestEdit: () -> Unit,
+    onStreetView: () -> Unit,
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -75,10 +88,96 @@ internal fun ParkingBayDetailsSheet(
             val hasDescription = bay.description.isNotBlank()
 
             if (hasDescription) {
-                HorizontalDivider(Modifier.padding(vertical = 20.dp))
+                SubtleDivider()
                 DetailItem(label = "Details", value = bay.description)
             }
+
+            SubtleDivider()
+
+            ParkingBayActionButtons(
+                onNavigate = onNavigate,
+                onShare = onShare,
+                onSuggestEdit = onSuggestEdit,
+                onStreetView = onStreetView,
+            )
         }
+    }
+}
+
+@Composable
+private fun SubtleDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 20.dp),
+        thickness = 0.5.dp,
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+    )
+}
+
+@Composable
+private fun ParkingBayActionButtons(
+    onNavigate: () -> Unit,
+    onShare: () -> Unit,
+    onSuggestEdit: () -> Unit,
+    onStreetView: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ParkingBayActionButton(
+                label = "Navigate",
+                icon = Icons.Default.Directions,
+                onClick = onNavigate,
+                modifier = Modifier.weight(1f),
+            )
+            ParkingBayActionButton(
+                label = "Share",
+                icon = Icons.Default.Share,
+                onClick = onShare,
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ParkingBayActionButton(
+                label = "Suggest edit",
+                icon = Icons.Default.Edit,
+                onClick = onSuggestEdit,
+                modifier = Modifier.weight(1f),
+            )
+            ParkingBayActionButton(
+                label = "Street View",
+                icon = Icons.Default.Streetview,
+                onClick = onStreetView,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ParkingBayActionButton(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(label)
     }
 }
 

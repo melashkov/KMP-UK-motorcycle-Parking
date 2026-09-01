@@ -8,31 +8,38 @@ import com.melashkov.mcparking.domain.interfaces.DataError
 import com.melashkov.mcparking.domain.usecases.SearchParkingBaysUseCase
 import com.melashkov.mcparking.domain.usecases.SearchParkingResult
 import com.melashkov.mcparking.domain.usecases.ShouldShowSearchThisAreaUseCase
+import com.melashkov.mcparking.ui.bayEditor.navigation.AddBayRoute
+import com.melashkov.mcparking.ui.bayEditor.navigation.EditBayRoute
+import com.melashkov.mcparking.ui.navigation.AppNavigationSink
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
-import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.spatialk.geojson.Position
-
 sealed interface MapUiEvent {
-    data class MoveCamera(
-        val position: CameraPosition, val animated: Boolean = true
-    ) : MapUiEvent
+    data class InitialViewport(val viewport: MapViewport) : MapUiEvent
+    data class ViewportChanged(val viewport: MapViewport) : MapUiEvent
+    data object SearchCurrentArea : MapUiEvent
+    data object AddBay : MapUiEvent
+    data class NavigateToBay(val bay: ParkingBay) : MapUiEvent
+    data class ShareBay(val bay: ParkingBay) : MapUiEvent
+    data class SelectedBay(val bay: ParkingBay) : MapUiEvent
+    data class SuggestEdit(val bay: ParkingBay) : MapUiEvent
+    data class OpenStreetView(val bay: ParkingBay) : MapUiEvent
+    data object DismissBayDetails : MapUiEvent
 }
 
 data class MapUiState(
     val parkingBays: ImmutableList<ParkingBay> = persistentListOf(),
+    val selectedBay: ParkingBay? = null,
     val isLoading: Boolean = false,
     val showSearchThisArea: Boolean = false,
     val error: MapUiError? = null,
-    val currentViewport: MapViewport? = null
+    val currentViewport: MapViewport? = null,
+    val eventSink: (MapUiEvent) -> Unit = {},
 )
 
 sealed interface MapUiError {
@@ -46,21 +53,51 @@ sealed interface MapUiError {
 @KoinViewModel
 class BaysMapViewModel(
     private val searchParkingBays: SearchParkingBaysUseCase,
-    private val shouldShowSearchThisArea: ShouldShowSearchThisAreaUseCase
+    private val shouldShowSearchThisArea: ShouldShowSearchThisAreaUseCase,
+    private val appNavigationSink: AppNavigationSink,
 ) : ViewModel() {
 
-    val firstPosition =
-        CameraPosition(target = Position(latitude = 51.512682148762195, longitude = -0.0904589182234332), zoom = 13.0)
+    private val eventSink: (MapUiEvent) -> Unit = ::onEvent
 
-    private val _uiState = MutableStateFlow(MapUiState())
+    private val _uiState = MutableStateFlow(MapUiState(eventSink = eventSink))
     val uiState = _uiState.asStateFlow()
-
-    private val _events = Channel<MapUiEvent>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
 
     private var hasSearchedInitialArea = false
 
-    fun searchInitialArea(viewport: MapViewport) {
+    private fun onEvent(event: MapUiEvent) {
+        when (event) {
+            is MapUiEvent.InitialViewport -> searchInitialArea(event.viewport)
+            is MapUiEvent.ViewportChanged -> onMapViewportChanged(event.viewport)
+            MapUiEvent.SearchCurrentArea -> searchCurrentArea()
+            MapUiEvent.AddBay -> appNavigationSink.navigate(AddBayRoute)
+
+            is MapUiEvent.SelectedBay -> {
+                _uiState.update { it.copy(selectedBay = event.bay) }
+            }
+
+            MapUiEvent.DismissBayDetails -> {
+                _uiState.update { it.copy(selectedBay = null) }
+            }
+
+            is MapUiEvent.NavigateToBay -> {
+                appNavigationSink.launch(event.bay.directionsAction())
+            }
+
+            is MapUiEvent.ShareBay -> {
+                appNavigationSink.launch(event.bay.shareAction())
+            }
+
+            is MapUiEvent.SuggestEdit -> {
+                appNavigationSink.navigate(EditBayRoute(event.bay.id))
+            }
+
+            is MapUiEvent.OpenStreetView -> {
+                appNavigationSink.launch(event.bay.streetViewAction())
+            }
+        }
+    }
+
+    private fun searchInitialArea(viewport: MapViewport) {
         if (hasSearchedInitialArea) {
             onMapViewportChanged(viewport)
             return
@@ -76,7 +113,7 @@ class BaysMapViewModel(
         searchCurrentArea()
     }
 
-    fun onMapViewportChanged(viewport: MapViewport) {
+    private fun onMapViewportChanged(viewport: MapViewport) {
         _uiState.update { state ->
             state.copy(
                 currentViewport  = viewport,
@@ -88,7 +125,7 @@ class BaysMapViewModel(
         }
     }
 
-    fun searchCurrentArea() {
+    private fun searchCurrentArea() {
         if (_uiState.value.isLoading) return
 
         _uiState.update {
@@ -116,8 +153,12 @@ class BaysMapViewModel(
             when (val result = searchParkingBays(viewport)) {
                 is SearchParkingResult.Success -> {
                     _uiState.update {
+                        val bays = result.bays.toImmutableList()
                         it.copy(
-                            parkingBays = result.bays.toImmutableList(),
+                            parkingBays = bays,
+                            selectedBay = it.selectedBay?.let { selected ->
+                                bays.firstOrNull { bay -> bay.id == selected.id }
+                            },
                             isLoading = false,
                             showSearchThisArea = false,
                             error = null,
@@ -146,21 +187,12 @@ class BaysMapViewModel(
                 }
             }
         }
-    }/*
-fun onMapRegionMoved() {
-    _uiState.update {
-        it.copy(showSearchThisArea = true)
     }
-}
- */
 }
 
 private fun DataError.toUiError(): MapUiError = when (this) {
     DataError.Offline -> MapUiError.Offline
-
     DataError.ServerUnavailable -> MapUiError.ServerUnavailable
-
     DataError.Unauthorized -> MapUiError.Unauthorized
-
     else -> MapUiError.Unknown
 }

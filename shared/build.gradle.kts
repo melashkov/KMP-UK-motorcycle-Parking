@@ -79,6 +79,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.navigation3.runtime)
+            implementation(libs.navigation3.ui)
             implementation(libs.maplibre.compose)
             implementation(libs.kotlinx.collections.immutable)
             // Koin

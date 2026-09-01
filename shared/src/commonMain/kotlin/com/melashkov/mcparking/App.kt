@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.melashkov.mcparking.di.KoinApp
-import com.melashkov.mcparking.ui.baysMap.BaysMap
+import com.melashkov.mcparking.ui.navigation.AppNavigation
 import org.koin.compose.KoinApplication
 import org.koin.plugin.module.dsl.koinConfiguration
 
@@ -21,6 +21,6 @@ fun App() {
 @Composable
 fun AppContent() {
     MaterialTheme {
-        BaysMap()
+        AppNavigation()
     }
 }

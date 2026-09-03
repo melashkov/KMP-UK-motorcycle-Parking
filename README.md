@@ -31,51 +31,52 @@ commands and options:
 
 The app selects its API automatically:
 
-- Android debuggable builds and iOS debug binaries use the isolated development API at
+- Android emulator builds use the isolated development API through the host alias at
+  `http://10.0.2.2:8080/api_dev/`.
+- Android debug builds on a physical USB device and iOS debug builds use
   `http://127.0.0.1:8080/api_dev/`.
 - Release builds use `https://melashkov.com/api/`.
 
-The URLs are defined in
+The production URL is defined in
 [ApiEnvironment.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiEnvironment.kt).
-Android and iOS determine whether the running app is a debug build in their respective
-`androidMain` and `iosMain` implementations.
+Each platform selects its development URL and detects debug builds in its `androidMain` or
+`iosMain` implementation.
 
 ### Bootstrap the local API
 
 Set up the separate `motorcycle_parking_api` project using its README, including its PHP config
-and MySQL database. Start its development server so that physical devices can reach it over the
-local network:
+and MySQL database. Start its development server on the Mac:
 
 ```bash
 cd ../motorcycle_parking_api
-php -S 0.0.0.0:8080 -t html
+php -S 127.0.0.1:8080 -t html
 ```
 
-For an Android device connected over USB, forward the development port before launching the app:
+The Android emulator reaches that server through `10.0.2.2`; it does not need port forwarding.
+For a physical Android device connected over USB, forward the device's loopback port before
+launching the app:
 
 ```bash
 adb reverse tcp:8080 tcp:8080
 ```
 
-The iOS Simulator can use the configured loopback address directly. For an iOS device, or an
-Android device without USB forwarding, replace `127.0.0.1` with the Mac's LAN address. Connect the
-Mac and phone to the same network and allow incoming PHP connections through the macOS firewall.
-
-Find the Mac's current Wi-Fi address:
+Confirm the forwarding rule with:
 
 ```bash
+adb reverse --list
+```
+
+The iOS Simulator can use `127.0.0.1` directly. A physical iOS device cannot use the Mac's
+loopback address; for that case, bind PHP to all interfaces and configure the iOS development URL
+to use the Mac's LAN address:
+
+```bash
+php -S 0.0.0.0:8080 -t html
 ipconfig getifaddr en0
 ```
 
-If that address changes, update both:
-
-- `DEVELOPMENT_API_BASE_URL` in
-  [ApiEnvironment.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiEnvironment.kt).
-- The allowed domain in
-  [network_security_config.xml](./androidApp/src/debug/res/xml/network_security_config.xml).
-
-Reinstall or rebuild the app after changing the address. A DHCP reservation for the Mac can keep
-the development address stable.
+Connect the Mac and iPhone to the same network and allow incoming PHP connections through the
+macOS firewall. A DHCP reservation for the Mac can keep that development address stable.
 
 Verify the API from the Mac before launching the app:
 
@@ -83,8 +84,8 @@ Verify the API from the Mac before launching the app:
 curl "http://127.0.0.1:8080/api_dev/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
 ```
 
-For a physical device using the Mac's LAN address, opening the same URL in the device browser is a
-useful final connectivity check. On iOS, accept the local-network access prompt when it appears.
+On a physical iOS device, opening the LAN-address version of the same URL in Safari is a useful
+final connectivity check. Accept the local-network access prompt when it appears.
 
 ### Running tests
 

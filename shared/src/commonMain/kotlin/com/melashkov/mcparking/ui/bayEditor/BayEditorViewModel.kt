@@ -55,7 +55,7 @@ data class BayEditorUiState(
     val isLocationPickerOpen: Boolean = false,
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
-    val submissionError: String? = null,
+    val submissionError: DataError? = null,
     val eventSink: (BayEditorEvent) -> Unit = {},
 )
 
@@ -216,7 +216,7 @@ class BayEditorViewModel(
                     _uiState.update {
                         it.copy(
                             isSubmitting = false,
-                            submissionError = result.error.editorMessage,
+                            submissionError = result.error,
                         )
                     }
                 }
@@ -240,13 +240,3 @@ class BayEditorViewModel(
 private fun ParkingType.isAvailableFor(mode: BayEditorMode): Boolean =
     this in BayEditorViewModel.EditableParkingTypes ||
         (mode == BayEditorMode.Edit && this == ParkingType.INACTIVE)
-
-private val DataError.editorMessage: String
-    get() = when (this) {
-        DataError.Offline -> "You're offline. Check your connection and try again."
-        DataError.ServerUnavailable -> "The server is unavailable. Please try again shortly."
-        DataError.RateLimited -> "Too many requests. Please wait and try again."
-        DataError.Unauthorized,
-        DataError.Forbidden -> "This submission could not be authorised."
-        DataError.Unknown -> "We couldn't submit this change. Please try again."
-    }

@@ -29,6 +29,11 @@
     <string name="bay_editor_submit_edit">Submit suggested edit</string>
     <string name="bay_editor_submit_new">Submit new bay</string>
     <string name="bay_editor_character_count">%1$d/%2$d</string>
+    <string name="bay_editor_error_offline">You're offline. Check your connection and try again.</string>
+    <string name="bay_editor_error_server_unavailable">The server is unavailable. Please try again shortly.</string>
+    <string name="bay_editor_error_rate_limited">Too many requests. Please wait and try again.</string>
+    <string name="bay_editor_error_unauthorised">This submission could not be authorised.</string>
+    <string name="bay_editor_error_unknown">We couldn't submit this change. Please try again.</string>
 
     <string name="location_picker_instruction">Move the map to position the pin</string>
     <string name="location_picker_title">Choose location</string>

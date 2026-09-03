@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.melashkov.mcparking.domain.interfaces.DataError
 import org.jetbrains.compose.resources.stringResource
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_done
@@ -28,7 +29,7 @@ import ukmotorcycleparking.shared.generated.resources.submission_success_title
 internal fun EditorSubmitBar(
     mode: BayEditorMode,
     isSubmitting: Boolean,
-    submissionError: String?,
+    submissionError: DataError?,
     onSubmit: () -> Unit,
 ) {
     Surface(shadowElevation = 3.dp) {
@@ -40,7 +41,7 @@ internal fun EditorSubmitBar(
         ) {
             submissionError?.let {
                 Text(
-                    text = it,
+                    text = it.localizedEditorMessage(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(bottom = 8.dp),

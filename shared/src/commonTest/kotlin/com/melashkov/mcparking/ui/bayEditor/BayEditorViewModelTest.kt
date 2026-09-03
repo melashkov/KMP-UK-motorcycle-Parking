@@ -115,7 +115,7 @@ class BayEditorViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            "You're offline. Check your connection and try again.",
+            DataError.Offline,
             viewModel.uiState.value.submissionError,
         )
         assertFalse(viewModel.uiState.value.isSubmitting)

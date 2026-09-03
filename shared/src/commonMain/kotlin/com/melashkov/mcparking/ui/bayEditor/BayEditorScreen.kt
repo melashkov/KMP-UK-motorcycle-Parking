@@ -3,6 +3,7 @@ package com.melashkov.mcparking.ui.bayEditor
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +28,8 @@ import ukmotorcycleparking.shared.generated.resources.bay_editor_suggest_edit_ti
 @Suppress("DEPRECATION")
 @Composable
 fun BayEditorScreen(uiState: BayEditorUiState) {
+    val formScrollState = rememberScrollState()
+
     BackHandler(enabled = uiState.isLocationPickerOpen) {
         uiState.eventSink(BayEditorEvent.DismissLocationPicker)
     }
@@ -44,16 +47,48 @@ fun BayEditorScreen(uiState: BayEditorUiState) {
     }
 
     Scaffold(
-        topBar = { EditorTopBar(uiState) },
+        topBar = {
+            EditorTopBar(
+                mode = uiState.mode,
+                onBack = { uiState.eventSink(BayEditorEvent.Back) },
+            )
+        },
         bottomBar = {
             if (uiState.isInitialized) {
-                EditorSubmitBar(uiState)
+                EditorSubmitBar(
+                    mode = uiState.mode,
+                    isSubmitting = uiState.isSubmitting,
+                    submissionError = uiState.submissionError,
+                    onSubmit = { uiState.eventSink(BayEditorEvent.Submit) },
+                )
             }
         },
     ) { contentPadding ->
         if (uiState.isInitialized) {
             BayEditorForm(
-                uiState = uiState,
+                mode = uiState.mode,
+                title = uiState.title,
+                titleError = uiState.titleError,
+                onTitleChanged = {
+                    uiState.eventSink(BayEditorEvent.TitleChanged(it))
+                },
+                type = uiState.type,
+                typeError = uiState.typeError,
+                onTypeSelected = {
+                    uiState.eventSink(BayEditorEvent.TypeChanged(it))
+                },
+                location = uiState.location,
+                locationError = uiState.locationError,
+                onChooseLocation = {
+                    uiState.eventSink(BayEditorEvent.ChooseLocation)
+                },
+                description = uiState.description,
+                descriptionError = uiState.descriptionError,
+                onDescriptionChanged = {
+                    uiState.eventSink(BayEditorEvent.DescriptionChanged(it))
+                },
+                onSubmit = { uiState.eventSink(BayEditorEvent.Submit) },
+                scrollState = formScrollState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
@@ -80,11 +115,14 @@ fun BayEditorScreen(uiState: BayEditorUiState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EditorTopBar(uiState: BayEditorUiState) {
+private fun EditorTopBar(
+    mode: BayEditorMode,
+    onBack: () -> Unit,
+) {
     TopAppBar(
         title = {
             Text(
-                when (uiState.mode) {
+                when (mode) {
                     BayEditorMode.Add -> stringResource(Res.string.bay_editor_add_title)
                     BayEditorMode.Edit -> stringResource(
                         Res.string.bay_editor_suggest_edit_title,
@@ -93,7 +131,7 @@ private fun EditorTopBar(uiState: BayEditorUiState) {
             )
         },
         navigationIcon = {
-            IconButton(onClick = { uiState.eventSink(BayEditorEvent.Back) }) {
+            IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(Res.string.action_back),

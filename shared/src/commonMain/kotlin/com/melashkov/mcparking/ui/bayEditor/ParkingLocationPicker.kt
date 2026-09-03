@@ -20,13 +20,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
+import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.GestureOptions
 import org.maplibre.compose.map.MapOptions
@@ -55,8 +60,6 @@ internal fun ParkingLocationPicker(
             zoom = LocationPickerZoom,
         ),
     )
-    val target = cameraState.position.target
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -72,37 +75,10 @@ internal fun ParkingLocationPicker(
             )
         },
         bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Text(
-                    text = "${target.latitude.shortCoordinate}, ${target.longitude.shortCoordinate}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-                Button(
-                    onClick = {
-                        onLocationSelected(
-                            GeoCoordinate(
-                                latitude = target.latitude,
-                                longitude = target.longitude,
-                            ),
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = null)
-                    Text(
-                        text = stringResource(Res.string.action_use_this_location),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-            }
+            LocationPickerBottomBar(
+                cameraState = cameraState,
+                onLocationSelected = onLocationSelected,
+            )
         },
     ) { contentPadding ->
         Box(
@@ -141,6 +117,59 @@ internal fun ParkingLocationPicker(
             }
         }
     }
+}
+
+@Composable
+private fun LocationPickerBottomBar(
+    cameraState: CameraState,
+    onLocationSelected: (GeoCoordinate) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        LocationCoordinates(cameraState)
+
+        Button(
+            onClick = {
+                val target = cameraState.position.target
+                onLocationSelected(
+                    GeoCoordinate(
+                        latitude = target.latitude,
+                        longitude = target.longitude,
+                    ),
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+        ) {
+            Icon(Icons.Default.Check, contentDescription = null)
+            Text(
+                text = stringResource(Res.string.action_use_this_location),
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun LocationCoordinates(cameraState: CameraState) {
+    val coordinateText by remember(cameraState) {
+        derivedStateOf {
+            val target = cameraState.position.target
+            "${target.latitude.shortCoordinate}, ${target.longitude.shortCoordinate}"
+        }
+    }
+
+    Text(
+        text = coordinateText,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 private val Double.shortCoordinate: String

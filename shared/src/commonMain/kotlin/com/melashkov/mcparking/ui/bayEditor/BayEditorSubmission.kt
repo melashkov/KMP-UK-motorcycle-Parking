@@ -25,7 +25,12 @@ import ukmotorcycleparking.shared.generated.resources.submission_success_edit_me
 import ukmotorcycleparking.shared.generated.resources.submission_success_title
 
 @Composable
-internal fun EditorSubmitBar(uiState: BayEditorUiState) {
+internal fun EditorSubmitBar(
+    mode: BayEditorMode,
+    isSubmitting: Boolean,
+    submissionError: String?,
+    onSubmit: () -> Unit,
+) {
     Surface(shadowElevation = 3.dp) {
         Column(
             modifier = Modifier
@@ -33,7 +38,7 @@ internal fun EditorSubmitBar(uiState: BayEditorUiState) {
                 .imePadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            uiState.submissionError?.let {
+            submissionError?.let {
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.error,
@@ -42,11 +47,11 @@ internal fun EditorSubmitBar(uiState: BayEditorUiState) {
                 )
             }
             Button(
-                onClick = { uiState.eventSink(BayEditorEvent.Submit) },
-                enabled = !uiState.isSubmitting,
+                onClick = onSubmit,
+                enabled = !isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                if (uiState.isSubmitting) {
+                if (isSubmitting) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .padding(end = 10.dp)
@@ -55,7 +60,7 @@ internal fun EditorSubmitBar(uiState: BayEditorUiState) {
                     )
                 }
                 Text(
-                    when (uiState.mode) {
+                    when (mode) {
                         BayEditorMode.Add -> stringResource(Res.string.bay_editor_submit_new)
                         BayEditorMode.Edit -> stringResource(Res.string.bay_editor_submit_edit)
                     },

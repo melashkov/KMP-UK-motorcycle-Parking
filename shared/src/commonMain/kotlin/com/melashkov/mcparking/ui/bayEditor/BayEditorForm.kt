@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.melashkov.mcparking.domain.entity.GeoCoordinate
+import com.melashkov.mcparking.domain.entity.ParkingType
 import org.jetbrains.compose.resources.stringResource
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.bay_editor_character_count
@@ -36,67 +38,55 @@ import ukmotorcycleparking.shared.generated.resources.bay_editor_review_notice
 
 @Composable
 internal fun BayEditorForm(
-    uiState: BayEditorUiState,
+    mode: BayEditorMode,
+    title: String,
+    titleError: String?,
+    onTitleChanged: (String) -> Unit,
+    type: ParkingType?,
+    typeError: String?,
+    onTypeSelected: (ParkingType) -> Unit,
+    location: GeoCoordinate?,
+    locationError: String?,
+    onChooseLocation: () -> Unit,
+    description: String,
+    descriptionError: String?,
+    onDescriptionChanged: (String) -> Unit,
+    onSubmit: () -> Unit,
+    scrollState: ScrollState,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
-        OutlinedTextField(
-            value = uiState.title,
-            onValueChange = { uiState.eventSink(BayEditorEvent.TitleChanged(it)) },
-            label = { Text(stringResource(Res.string.bay_editor_name_label)) },
-            placeholder = {
-                Text(stringResource(Res.string.bay_editor_name_placeholder))
-            },
-            singleLine = true,
-            isError = uiState.titleError != null,
-            supportingText = {
-                FieldSupportingText(
-                    error = uiState.titleError,
-                    count = uiState.title.length,
-                    maximum = BayEditorViewModel.TITLE_MAX_LENGTH,
-                )
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            modifier = Modifier.fillMaxWidth(),
+        NameField(
+            value = title,
+            error = titleError,
+            onValueChanged = onTitleChanged,
         )
 
         ParkingTypeSelector(
-            mode = uiState.mode,
-            selected = uiState.type,
-            error = uiState.typeError,
-            onSelected = { uiState.eventSink(BayEditorEvent.TypeChanged(it)) },
+            mode = mode,
+            selected = type,
+            error = typeError,
+            onSelected = onTypeSelected,
         )
 
-        LocationField(uiState)
+        LocationField(
+            location = location,
+            type = type,
+            error = locationError,
+            onChooseLocation = onChooseLocation,
+        )
 
-        OutlinedTextField(
-            value = uiState.description,
-            onValueChange = { uiState.eventSink(BayEditorEvent.DescriptionChanged(it)) },
-            label = { Text(stringResource(Res.string.bay_editor_description_label)) },
-            placeholder = {
-                Text(stringResource(Res.string.bay_editor_description_placeholder))
-            },
-            minLines = 3,
-            maxLines = 5,
-            isError = uiState.descriptionError != null,
-            supportingText = {
-                FieldSupportingText(
-                    error = uiState.descriptionError,
-                    count = uiState.description.length,
-                    maximum = BayEditorViewModel.DESCRIPTION_MAX_LENGTH,
-                )
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { uiState.eventSink(BayEditorEvent.Submit) },
-            ),
-            modifier = Modifier.fillMaxWidth(),
+        DescriptionField(
+            value = description,
+            error = descriptionError,
+            onValueChanged = onDescriptionChanged,
+            onSubmit = onSubmit,
         )
 
         ReviewNotice()
@@ -104,20 +94,50 @@ internal fun BayEditorForm(
 }
 
 @Composable
-private fun LocationField(uiState: BayEditorUiState) {
+private fun NameField(
+    value: String,
+    error: String?,
+    onValueChanged: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChanged,
+        label = { Text(stringResource(Res.string.bay_editor_name_label)) },
+        placeholder = {
+            Text(stringResource(Res.string.bay_editor_name_placeholder))
+        },
+        singleLine = true,
+        isError = error != null,
+        supportingText = {
+            FieldSupportingText(
+                error = error,
+                count = value.length,
+                maximum = BayEditorViewModel.TITLE_MAX_LENGTH,
+            )
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+@Composable
+private fun LocationField(
+    location: GeoCoordinate?,
+    type: ParkingType?,
+    error: String?,
+    onChooseLocation: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(Res.string.bay_editor_location_label),
             style = MaterialTheme.typography.titleSmall,
         )
-        uiState.location?.let { location ->
+        location?.let {
             ParkingLocationPreview(
-                location = location,
-                type = uiState.type,
-                error = uiState.locationError,
-                onChooseLocation = {
-                    uiState.eventSink(BayEditorEvent.ChooseLocation)
-                },
+                location = it,
+                type = type,
+                error = error,
+                onChooseLocation = onChooseLocation,
             )
         }
         Row(
@@ -136,6 +156,36 @@ private fun LocationField(uiState: BayEditorUiState) {
             )
         }
     }
+}
+
+@Composable
+private fun DescriptionField(
+    value: String,
+    error: String?,
+    onValueChanged: (String) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChanged,
+        label = { Text(stringResource(Res.string.bay_editor_description_label)) },
+        placeholder = {
+            Text(stringResource(Res.string.bay_editor_description_placeholder))
+        },
+        minLines = 3,
+        maxLines = 5,
+        isError = error != null,
+        supportingText = {
+            FieldSupportingText(
+                error = error,
+                count = value.length,
+                maximum = BayEditorViewModel.DESCRIPTION_MAX_LENGTH,
+            )
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onSubmit() }),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

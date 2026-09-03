@@ -6,6 +6,7 @@ import org.koin.core.annotation.KoinApplication
 import org.koin.dsl.KoinConfiguration
 import org.koin.dsl.includes
 import org.koin.dsl.koinConfiguration
+import org.koin.dsl.module
 import org.koin.plugin.module.dsl.koinConfiguration as generatedKoinConfiguration
 
 @KoinApplication(
@@ -15,11 +16,15 @@ class KoinApp
 
 @Composable
 internal fun rememberKoinAppConfiguration(): KoinConfiguration {
-    val apiBaseUrl = rememberApiBaseUrl()
-    return remember(apiBaseUrl) {
+    val apiUrlProvider = rememberApiUrlProvider()
+    return remember(apiUrlProvider) {
         koinConfiguration {
             includes(generatedKoinConfiguration<KoinApp>())
-            properties(mapOf(API_BASE_URL_PROPERTY to apiBaseUrl))
+            modules(
+                module {
+                    single<ApiUrlProvider> { apiUrlProvider }
+                },
+            )
         }
     }
 }

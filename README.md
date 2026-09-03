@@ -38,9 +38,9 @@ The app selects its API automatically:
 - Release builds use `https://melashkov.com/api/`.
 
 The production URL is defined in
-[ApiEnvironment.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiEnvironment.kt).
-Each platform selects its development URL and detects debug builds in its `androidMain` or
-`iosMain` implementation.
+[ApiUrlProvider.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiUrlProvider.kt),
+alongside the two development URLs. Each platform implementation selects the appropriate
+environment, while the HTTP client only depends on `ApiUrlProvider.baseUrl`.
 
 ### Bootstrap the local API
 

@@ -1,14 +1,12 @@
 package com.melashkov.mcparking.di
 
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Build
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
+import org.koin.core.scope.Scope
 
-@Composable
-internal actual fun rememberApiUrlProvider(): ApiUrlProvider {
-    val applicationInfo = LocalContext.current.applicationInfo
+internal actual fun platformApiUrlProvider(scope: Scope): ApiUrlProvider {
+    val applicationInfo = scope.get<Context>().applicationInfo
     val isDebug = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     val environment =
         when {
@@ -16,7 +14,7 @@ internal actual fun rememberApiUrlProvider(): ApiUrlProvider {
             isAndroidEmulator() -> ApiEnvironment.AndroidEmulatorDevelopment
             else -> ApiEnvironment.LocalhostDevelopment
         }
-    return remember(environment) { apiUrlProvider(environment) }
+    return apiUrlProvider(environment)
 }
 
 private fun isAndroidEmulator(): Boolean =

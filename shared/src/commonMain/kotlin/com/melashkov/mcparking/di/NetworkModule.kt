@@ -9,9 +9,14 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Singleton
+import org.koin.core.scope.Scope
 
 @Module
 class NetworkModule {
+
+    @Singleton
+    fun provideApiUrlProvider(scope: Scope): ApiUrlProvider =
+        platformApiUrlProvider(scope)
 
     @Singleton
     fun provideHttpClient(

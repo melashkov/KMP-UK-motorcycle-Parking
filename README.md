@@ -40,7 +40,8 @@ The app selects its API automatically:
 The production URL is defined in
 [ApiUrlProvider.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiUrlProvider.kt),
 alongside the two development URLs. Each platform implementation selects the appropriate
-environment, while the HTTP client only depends on `ApiUrlProvider.baseUrl`.
+environment; `NetworkModule` creates the provider as an application singleton, while the HTTP
+client only depends on `ApiUrlProvider.baseUrl`.
 
 ### Bootstrap the local API
 

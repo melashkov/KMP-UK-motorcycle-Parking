@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,68 +37,61 @@ import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.entity.ParkingType
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ParkingBayDetailsSheet(
+internal fun ParkingBayDetailsSheetContent(
     bay: ParkingBay,
-    onDismissRequest: () -> Unit,
     onNavigate: () -> Unit,
     onShare: () -> Unit,
     onSuggestEdit: () -> Unit,
     onStreetView: () -> Unit,
 ) {
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        containerColor = MaterialTheme.colorScheme.surface,
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .navigationBarsPadding()
+            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Image(
-                    painter = rememberParkingBayPinPainter(bay.type),
-                    contentDescription = null,
-                    modifier = Modifier.size(width = 40.dp, height = 50.dp),
-                )
-
-                Spacer(Modifier.width(16.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = bay.title.ifBlank { "Motorcycle parking" },
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    ParkingTypeBadge(bay.type)
-                }
-            }
-
-            val hasDescription = bay.description.isNotBlank()
-
-            if (hasDescription) {
-                SubtleDivider()
-                DetailItem(label = "Details", value = bay.description)
-            }
-
-            SubtleDivider()
-
-            ParkingBayActionButtons(
-                onNavigate = onNavigate,
-                onShare = onShare,
-                onSuggestEdit = onSuggestEdit,
-                onStreetView = onStreetView,
+            Image(
+                painter = rememberParkingBayPinPainter(bay.type),
+                contentDescription = null,
+                modifier = Modifier.size(width = 40.dp, height = 50.dp),
             )
+
+            Spacer(Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = bay.title.ifBlank { "Motorcycle parking" },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                ParkingTypeBadge(bay.type)
+            }
         }
+
+        val hasDescription = bay.description.isNotBlank()
+
+        if (hasDescription) {
+            SubtleDivider()
+            DetailItem(label = "Details", value = bay.description)
+        }
+
+        SubtleDivider()
+
+        ParkingBayActionButtons(
+            onNavigate = onNavigate,
+            onShare = onShare,
+            onSuggestEdit = onSuggestEdit,
+            onStreetView = onStreetView,
+        )
     }
 }
 

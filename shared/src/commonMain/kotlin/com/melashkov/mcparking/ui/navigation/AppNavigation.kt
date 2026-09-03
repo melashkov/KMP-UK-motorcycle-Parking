@@ -1,5 +1,11 @@
 package com.melashkov.mcparking.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -25,9 +31,41 @@ fun AppNavigation() {
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
+        transitionSpec = {
+            (
+                slideInHorizontally(
+                    animationSpec = tween(ScreenSlideDurationMillis),
+                    initialOffsetX = { width -> width },
+                ) togetherWith ExitTransition.None
+            ).apply {
+                targetContentZIndex = 1f
+            }
+        },
+        popTransitionSpec = {
+            (
+                EnterTransition.None togetherWith slideOutHorizontally(
+                    animationSpec = tween(ScreenSlideDurationMillis),
+                    targetOffsetX = { width -> width },
+                )
+            ).apply {
+                targetContentZIndex = -1f
+            }
+        },
+        predictivePopTransitionSpec = {
+            (
+                EnterTransition.None togetherWith slideOutHorizontally(
+                    animationSpec = tween(ScreenSlideDurationMillis),
+                    targetOffsetX = { width -> width },
+                )
+            ).apply {
+                targetContentZIndex = -1f
+            }
+        },
         entryProvider = entryProvider {
             baysMapEntries()
-            bayEditorEntries(onBack = { backStack.removeLastOrNull() })
+            bayEditorEntries()
         },
     )
 }
+
+private const val ScreenSlideDurationMillis = 240

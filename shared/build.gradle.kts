@@ -1,4 +1,5 @@
 import io.github.frankois944.spmForKmp.swiftPackageConfig
+import org.gradle.api.tasks.Sync
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.net.URI
 
@@ -74,6 +75,7 @@ kotlin {
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
+            implementation(libs.compose.ui.backhandler)
             implementation(libs.compose.components.resources)
             implementation(libs.material.icons.extended)
             implementation(libs.compose.uiToolingPreview)
@@ -100,10 +102,32 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
         }
     }
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+}
+
+val copyMapLibreFrameworkForIosSimulatorTests = tasks.register<Sync>(
+    "copyMapLibreFrameworkForIosSimulatorTests",
+) {
+    dependsOn("SwiftPackageConfigAppleIosSimulatorArm64CompileSwiftPackageIosSimulatorArm64")
+    from(
+        layout.buildDirectory.dir(
+            "spmKmpPlugin/iosSimulatorArm64/scratch/arm64-apple-ios-simulator/release/MapLibre.framework",
+        ),
+    )
+    into(
+        layout.buildDirectory.dir(
+            "bin/iosSimulatorArm64/debugTest/Frameworks/MapLibre.framework",
+        ),
+    )
+}
+
+tasks.named("iosSimulatorArm64Test") {
+    dependsOn(copyMapLibreFrameworkForIosSimulatorTests)
 }

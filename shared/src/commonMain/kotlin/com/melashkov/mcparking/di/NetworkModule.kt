@@ -8,13 +8,16 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Property
 import org.koin.core.annotation.Singleton
 
 @Module
 class NetworkModule {
 
     @Singleton
-    fun provideHttpClient(): HttpClient =
+    fun provideHttpClient(
+        @Property(API_BASE_URL_PROPERTY) apiBaseUrl: String,
+    ): HttpClient =
         HttpClient {
             expectSuccess = true
 
@@ -33,7 +36,7 @@ class NetworkModule {
             }
 
             defaultRequest {
-                url("http://192.168.1.91:8080/api/")
+                url(apiBaseUrl)
             }
         }
 }

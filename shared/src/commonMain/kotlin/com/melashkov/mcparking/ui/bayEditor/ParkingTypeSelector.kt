@@ -16,6 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.ui.baysMap.parkingBayColor
+import com.melashkov.mcparking.ui.localizedLabel
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.parking_type_inactive_help
+import ukmotorcycleparking.shared.generated.resources.parking_type_inactive_option
+import ukmotorcycleparking.shared.generated.resources.parking_type_label
 
 @Composable
 internal fun ParkingTypeSelector(
@@ -26,7 +32,7 @@ internal fun ParkingTypeSelector(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Parking type",
+            text = stringResource(Res.string.parking_type_label),
             style = MaterialTheme.typography.titleSmall,
         )
 
@@ -39,7 +45,7 @@ internal fun ParkingTypeSelector(
                     FilterChip(
                         selected = selected == type,
                         onClick = { onSelected(type) },
-                        label = { Text(type.editorLabel) },
+                        label = { Text(type.localizedLabel()) },
                         leadingIcon = {
                             Box(
                                 Modifier
@@ -57,7 +63,9 @@ internal fun ParkingTypeSelector(
             FilterChip(
                 selected = selected == ParkingType.INACTIVE,
                 onClick = { onSelected(ParkingType.INACTIVE) },
-                label = { Text("Inactive / no longer exists") },
+                label = {
+                    Text(stringResource(Res.string.parking_type_inactive_option))
+                },
                 leadingIcon = {
                     Box(
                         Modifier
@@ -68,7 +76,7 @@ internal fun ParkingTypeSelector(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                text = "Choose inactive if the parking bay has been removed or can no longer be used.",
+                text = stringResource(Res.string.parking_type_inactive_help),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -83,13 +91,3 @@ internal fun ParkingTypeSelector(
         }
     }
 }
-
-private val ParkingType.editorLabel: String
-    get() = when (this) {
-        ParkingType.FREE -> "Free"
-        ParkingType.PAY -> "Paid"
-        ParkingType.PERMIT -> "Permit required"
-        ParkingType.UNCATEGORISED -> "Unclassified"
-        ParkingType.UNVERIFIED -> "Unverified"
-        ParkingType.INACTIVE -> "Inactive / no longer exists"
-    }

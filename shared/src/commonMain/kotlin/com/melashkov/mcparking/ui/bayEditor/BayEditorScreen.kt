@@ -17,6 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_back
+import ukmotorcycleparking.shared.generated.resources.bay_editor_add_title
+import ukmotorcycleparking.shared.generated.resources.bay_editor_suggest_edit_title
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Suppress("DEPRECATION")
@@ -80,8 +85,10 @@ private fun EditorTopBar(uiState: BayEditorUiState) {
         title = {
             Text(
                 when (uiState.mode) {
-                    BayEditorMode.Add -> "Add parking bay"
-                    BayEditorMode.Edit -> "Suggest an edit"
+                    BayEditorMode.Add -> stringResource(Res.string.bay_editor_add_title)
+                    BayEditorMode.Edit -> stringResource(
+                        Res.string.bay_editor_suggest_edit_title,
+                    )
                 },
             )
         },
@@ -89,7 +96,7 @@ private fun EditorTopBar(uiState: BayEditorUiState) {
             IconButton(onClick = { uiState.eventSink(BayEditorEvent.Back) }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(Res.string.action_back),
                 )
             }
         },

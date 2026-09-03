@@ -25,12 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
+import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.GestureOptions
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.spatialk.geojson.Position
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_back
+import ukmotorcycleparking.shared.generated.resources.action_use_this_location
+import ukmotorcycleparking.shared.generated.resources.location_picker_instruction
+import ukmotorcycleparking.shared.generated.resources.location_picker_title
 import kotlin.math.roundToLong
 
 @Composable
@@ -54,12 +60,12 @@ internal fun ParkingLocationPicker(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Choose location") },
+                title = { Text(stringResource(Res.string.location_picker_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.action_back),
                         )
                     }
                 },
@@ -92,7 +98,7 @@ internal fun ParkingLocationPicker(
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null)
                     Text(
-                        text = "Use this location",
+                        text = stringResource(Res.string.action_use_this_location),
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
@@ -128,7 +134,7 @@ internal fun ParkingLocationPicker(
                 ),
             ) {
                 Text(
-                    text = "Move the map to position the pin",
+                    text = stringResource(Res.string.location_picker_instruction),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                 )

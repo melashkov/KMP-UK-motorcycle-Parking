@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
+import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.GestureOptions
@@ -31,6 +32,8 @@ import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.compose.util.ClickResult
 import org.maplibre.spatialk.geojson.Position
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_change
 
 @Composable
 internal fun ParkingLocationPreview(
@@ -96,7 +99,7 @@ internal fun ParkingLocationPreview(
                 ) {
                     Icon(Icons.Default.EditLocationAlt, contentDescription = null)
                     Text(
-                        text = "Change",
+                        text = stringResource(Res.string.action_change),
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }

@@ -1,12 +1,12 @@
 package com.melashkov.mcparking.domain.entity
 
-enum class ParkingType(val value: Int, val description: String) {
-    FREE(1, "Free"),
-    PAY(2, "Pay"),
-    PERMIT(3, "Permit holders"),
-    UNCATEGORISED(4, "Uncategorised"),
-    UNVERIFIED(5, "Unverified"),
-    INACTIVE(9, "Inactive");
+enum class ParkingType(val value: Int) {
+    FREE(1),
+    PAY(2),
+    PERMIT(3),
+    UNCATEGORISED(4),
+    UNVERIFIED(5),
+    INACTIVE(9);
 
     companion object {
         fun fromInt(value: Int): ParkingType =

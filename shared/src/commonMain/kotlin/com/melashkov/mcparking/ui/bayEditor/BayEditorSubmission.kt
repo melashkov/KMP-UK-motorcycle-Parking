@@ -15,6 +15,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_done
+import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_edit
+import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_new
+import ukmotorcycleparking.shared.generated.resources.submission_success_add_message
+import ukmotorcycleparking.shared.generated.resources.submission_success_edit_message
+import ukmotorcycleparking.shared.generated.resources.submission_success_title
 
 @Composable
 internal fun EditorSubmitBar(uiState: BayEditorUiState) {
@@ -48,8 +56,8 @@ internal fun EditorSubmitBar(uiState: BayEditorUiState) {
                 }
                 Text(
                     when (uiState.mode) {
-                        BayEditorMode.Add -> "Submit new bay"
-                        BayEditorMode.Edit -> "Submit suggested edit"
+                        BayEditorMode.Add -> stringResource(Res.string.bay_editor_submit_new)
+                        BayEditorMode.Edit -> stringResource(Res.string.bay_editor_submit_edit)
                     },
                 )
             }
@@ -64,18 +72,22 @@ internal fun SubmissionSuccessDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text("Thanks — submitted") },
+        title = { Text(stringResource(Res.string.submission_success_title)) },
         text = {
             Text(
                 when (mode) {
-                    BayEditorMode.Add -> "The new bay has been sent for review."
-                    BayEditorMode.Edit -> "Your suggested changes have been sent for review."
+                    BayEditorMode.Add -> stringResource(
+                        Res.string.submission_success_add_message,
+                    )
+                    BayEditorMode.Edit -> stringResource(
+                        Res.string.submission_success_edit_message,
+                    )
                 },
             )
         },
         confirmButton = {
             TextButton(onClick = onDone) {
-                Text("Done")
+                Text(stringResource(Res.string.action_done))
             }
         },
     )

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_add_bay">Add bay</string>
+    <string name="action_back">Back</string>
+    <string name="action_change">Change</string>
+    <string name="action_done">Done</string>
+    <string name="action_navigate">Navigate</string>
+    <string name="action_search_this_area">Search this area</string>
+    <string name="action_share">Share</string>
+    <string name="action_street_view">Street View</string>
+    <string name="action_suggest_edit">Suggest edit</string>
+    <string name="action_use_this_location">Use this location</string>
+
+    <string name="accessibility_dismiss_bay_details">Dismiss bay details</string>
+    <string name="accessibility_my_location">My location</string>
+
+    <string name="bay_details_fallback_name">Motorcycle parking</string>
+    <string name="bay_details_section">Details</string>
+
+    <string name="bay_editor_add_title">Add parking bay</string>
+    <string name="bay_editor_description_label">Description (optional)</string>
+    <string name="bay_editor_description_placeholder">Access notes, restrictions, number of spaces…</string>
+    <string name="bay_editor_location_help">Move the centre pin to the exact parking location</string>
+    <string name="bay_editor_location_label">Location</string>
+    <string name="bay_editor_name_label">Name</string>
+    <string name="bay_editor_name_placeholder">e.g. Motorcycle bays outside the station</string>
+    <string name="bay_editor_review_notice">Your submission will be reviewed before it appears on the map.</string>
+    <string name="bay_editor_suggest_edit_title">Suggest an edit</string>
+    <string name="bay_editor_submit_edit">Submit suggested edit</string>
+    <string name="bay_editor_submit_new">Submit new bay</string>
+    <string name="bay_editor_character_count">%1$d/%2$d</string>
+
+    <string name="location_picker_instruction">Move the map to position the pin</string>
+    <string name="location_picker_title">Choose location</string>
+
+    <string name="parking_type_label">Parking type</string>
+    <string name="parking_type_free">Free</string>
+    <string name="parking_type_paid">Paid</string>
+    <string name="parking_type_permit_required">Permit required</string>
+    <string name="parking_type_unclassified">Unclassified</string>
+    <string name="parking_type_unverified">Unverified</string>
+    <string name="parking_type_inactive">Inactive</string>
+    <string name="parking_type_inactive_option">Inactive / no longer exists</string>
+    <string name="parking_type_inactive_help">Choose inactive if the parking bay has been removed or can no longer be used.</string>
+
+    <string name="submission_success_title">Thanks — submitted</string>
+    <string name="submission_success_add_message">The new bay has been sent for review.</string>
+    <string name="submission_success_edit_message">Your suggested changes have been sent for review.</string>
+</resources>

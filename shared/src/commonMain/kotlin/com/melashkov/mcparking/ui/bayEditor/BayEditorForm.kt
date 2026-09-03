@@ -23,6 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.bay_editor_character_count
+import ukmotorcycleparking.shared.generated.resources.bay_editor_description_label
+import ukmotorcycleparking.shared.generated.resources.bay_editor_description_placeholder
+import ukmotorcycleparking.shared.generated.resources.bay_editor_location_help
+import ukmotorcycleparking.shared.generated.resources.bay_editor_location_label
+import ukmotorcycleparking.shared.generated.resources.bay_editor_name_label
+import ukmotorcycleparking.shared.generated.resources.bay_editor_name_placeholder
+import ukmotorcycleparking.shared.generated.resources.bay_editor_review_notice
 
 @Composable
 internal fun BayEditorForm(
@@ -39,8 +49,10 @@ internal fun BayEditorForm(
         OutlinedTextField(
             value = uiState.title,
             onValueChange = { uiState.eventSink(BayEditorEvent.TitleChanged(it)) },
-            label = { Text("Name") },
-            placeholder = { Text("e.g. Motorcycle bays outside the station") },
+            label = { Text(stringResource(Res.string.bay_editor_name_label)) },
+            placeholder = {
+                Text(stringResource(Res.string.bay_editor_name_placeholder))
+            },
             singleLine = true,
             isError = uiState.titleError != null,
             supportingText = {
@@ -66,8 +78,10 @@ internal fun BayEditorForm(
         OutlinedTextField(
             value = uiState.description,
             onValueChange = { uiState.eventSink(BayEditorEvent.DescriptionChanged(it)) },
-            label = { Text("Description (optional)") },
-            placeholder = { Text("Access notes, restrictions, number of spaces…") },
+            label = { Text(stringResource(Res.string.bay_editor_description_label)) },
+            placeholder = {
+                Text(stringResource(Res.string.bay_editor_description_placeholder))
+            },
             minLines = 3,
             maxLines = 5,
             isError = uiState.descriptionError != null,
@@ -93,7 +107,7 @@ internal fun BayEditorForm(
 private fun LocationField(uiState: BayEditorUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Location",
+            text = stringResource(Res.string.bay_editor_location_label),
             style = MaterialTheme.typography.titleSmall,
         )
         uiState.location?.let { location ->
@@ -116,7 +130,7 @@ private fun LocationField(uiState: BayEditorUiState) {
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "Move the centre pin to the exact parking location",
+                text = stringResource(Res.string.bay_editor_location_help),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -140,7 +154,7 @@ private fun ReviewNotice() {
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
-                text = "Your submission will be reviewed before it appears on the map.",
+                text = stringResource(Res.string.bay_editor_review_notice),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
@@ -159,6 +173,6 @@ private fun FieldSupportingText(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(error.orEmpty())
-        Text("$count/$maximum")
+        Text(stringResource(Res.string.bay_editor_character_count, count, maximum))
     }
 }

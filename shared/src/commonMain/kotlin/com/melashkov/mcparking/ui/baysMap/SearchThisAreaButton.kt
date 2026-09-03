@@ -20,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_search_this_area
 
 @Composable
 fun SearchThisAreaButton(
@@ -56,7 +59,7 @@ fun SearchThisAreaButton(
                 Spacer(Modifier.width(8.dp))
 
                 Text(
-                    text = "Search this area",
+                    text = stringResource(Res.string.action_search_this_area),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

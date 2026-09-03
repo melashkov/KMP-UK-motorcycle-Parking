@@ -36,6 +36,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.entity.ParkingType
+import com.melashkov.mcparking.ui.localizedLabel
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_navigate
+import ukmotorcycleparking.shared.generated.resources.action_share
+import ukmotorcycleparking.shared.generated.resources.action_street_view
+import ukmotorcycleparking.shared.generated.resources.action_suggest_edit
+import ukmotorcycleparking.shared.generated.resources.bay_details_fallback_name
+import ukmotorcycleparking.shared.generated.resources.bay_details_section
 
 @Composable
 internal fun ParkingBayDetailsSheetContent(
@@ -69,7 +78,9 @@ internal fun ParkingBayDetailsSheetContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = bay.title.ifBlank { "Motorcycle parking" },
+                    text = bay.title.ifBlank {
+                        stringResource(Res.string.bay_details_fallback_name)
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -81,7 +92,10 @@ internal fun ParkingBayDetailsSheetContent(
 
         if (hasDescription) {
             SubtleDivider()
-            DetailItem(label = "Details", value = bay.description)
+            DetailItem(
+                label = stringResource(Res.string.bay_details_section),
+                value = bay.description,
+            )
         }
 
         SubtleDivider()
@@ -117,13 +131,13 @@ private fun ParkingBayActionButtons(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ParkingBayActionButton(
-                label = "Navigate",
+                label = stringResource(Res.string.action_navigate),
                 icon = Icons.Default.Directions,
                 onClick = onNavigate,
                 modifier = Modifier.weight(1f),
             )
             ParkingBayActionButton(
-                label = "Share",
+                label = stringResource(Res.string.action_share),
                 icon = Icons.Default.Share,
                 onClick = onShare,
                 modifier = Modifier.weight(1f),
@@ -135,13 +149,13 @@ private fun ParkingBayActionButtons(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ParkingBayActionButton(
-                label = "Suggest edit",
+                label = stringResource(Res.string.action_suggest_edit),
                 icon = Icons.Default.Edit,
                 onClick = onSuggestEdit,
                 modifier = Modifier.weight(1f),
             )
             ParkingBayActionButton(
-                label = "Street View",
+                label = stringResource(Res.string.action_street_view),
                 icon = Icons.Default.Streetview,
                 onClick = onStreetView,
                 modifier = Modifier.weight(1f),
@@ -192,7 +206,7 @@ private fun ParkingTypeBadge(type: ParkingType) {
                     .background(color),
             )
             Text(
-                text = type.description,
+                text = type.localizedLabel(),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )

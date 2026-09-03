@@ -34,12 +34,16 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.Position
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
+import ukmotorcycleparking.shared.generated.resources.action_add_bay
 
 @Composable
 fun BaysMap(
@@ -156,7 +160,7 @@ private fun BaysMapContent(
                     contentDescription = null,
                 )
             },
-            text = { Text("Add bay") },
+            text = { Text(stringResource(Res.string.action_add_bay)) },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
@@ -179,7 +183,7 @@ private fun BaysMapContent(
         ) {
             Icon(
                 imageVector = Icons.Default.MyLocation,
-                contentDescription = "My location",
+                contentDescription = stringResource(Res.string.accessibility_my_location),
             )
         }
     }

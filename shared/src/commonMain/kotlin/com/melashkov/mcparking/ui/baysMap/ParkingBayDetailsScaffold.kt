@@ -22,6 +22,9 @@ import com.melashkov.mcparking.domain.entity.ParkingBay
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.accessibility_dismiss_bay_details
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Suppress("DEPRECATION")
@@ -95,7 +98,9 @@ internal fun ParkingBayDetailsScaffold(
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f))
                         .clickable(
-                            onClickLabel = "Dismiss bay details",
+                            onClickLabel = stringResource(
+                                Res.string.accessibility_dismiss_bay_details,
+                            ),
                             onClick = ::hideSheet,
                         ),
                 )

@@ -71,6 +71,8 @@ class BayEditorViewModel(
     private var parentId: String? = null
 
     fun initialize(initialData: BayEditorInitialData) {
+        if (_uiState.value.isInitialized) return
+
         parentId = initialData.parentId
         _uiState.value = BayEditorUiState(
             isInitialized = true,

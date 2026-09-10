@@ -144,6 +144,17 @@ class BayEditorViewModelTest {
         assertFalse(viewModel.uiState.value.isLocationPickerOpen)
     }
 
+    @Test
+    fun repeatedInitializationDoesNotDiscardDraftChanges() {
+        val viewModel = createViewModel(FakeParkingRepository())
+        viewModel.initialize(addInitialData(title = "Initial title"))
+        viewModel.uiState.value.eventSink(BayEditorEvent.TitleChanged("Unsaved draft"))
+
+        viewModel.initialize(addInitialData(title = "Reinitialized title"))
+
+        assertEquals("Unsaved draft", viewModel.uiState.value.title)
+    }
+
     private fun createViewModel(repository: FakeParkingRepository) =
         BayEditorViewModel(
             submitParkingBay = SubmitParkingBayUseCase(repository),

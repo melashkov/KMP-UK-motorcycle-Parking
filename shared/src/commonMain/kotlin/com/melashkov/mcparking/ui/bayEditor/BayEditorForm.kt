@@ -40,16 +40,16 @@ import ukmotorcycleparking.shared.generated.resources.bay_editor_review_notice
 internal fun BayEditorForm(
     mode: BayEditorMode,
     title: String,
-    titleError: String?,
+    titleError: BayEditorFieldError?,
     onTitleChanged: (String) -> Unit,
     type: ParkingType?,
-    typeError: String?,
+    typeError: BayEditorFieldError?,
     onTypeSelected: (ParkingType) -> Unit,
     location: GeoCoordinate?,
-    locationError: String?,
+    locationError: BayEditorFieldError?,
     onChooseLocation: () -> Unit,
     description: String,
-    descriptionError: String?,
+    descriptionError: BayEditorFieldError?,
     onDescriptionChanged: (String) -> Unit,
     onSubmit: () -> Unit,
     scrollState: ScrollState,
@@ -96,7 +96,7 @@ internal fun BayEditorForm(
 @Composable
 private fun NameField(
     value: String,
-    error: String?,
+    error: BayEditorFieldError?,
     onValueChanged: (String) -> Unit,
 ) {
     OutlinedTextField(
@@ -112,7 +112,7 @@ private fun NameField(
             FieldSupportingText(
                 error = error,
                 count = value.length,
-                maximum = BayEditorViewModel.TITLE_MAX_LENGTH,
+                maximum = BayEditorFormState.TITLE_MAX_LENGTH,
             )
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -124,7 +124,7 @@ private fun NameField(
 private fun LocationField(
     location: GeoCoordinate?,
     type: ParkingType?,
-    error: String?,
+    error: BayEditorFieldError?,
     onChooseLocation: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -136,7 +136,7 @@ private fun LocationField(
             ParkingLocationPreview(
                 location = it,
                 type = type,
-                error = error,
+                error = error?.localizedEditorMessage(),
                 onChooseLocation = onChooseLocation,
             )
         }
@@ -161,7 +161,7 @@ private fun LocationField(
 @Composable
 private fun DescriptionField(
     value: String,
-    error: String?,
+    error: BayEditorFieldError?,
     onValueChanged: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
@@ -179,7 +179,7 @@ private fun DescriptionField(
             FieldSupportingText(
                 error = error,
                 count = value.length,
-                maximum = BayEditorViewModel.DESCRIPTION_MAX_LENGTH,
+                maximum = BayEditorFormState.DESCRIPTION_MAX_LENGTH,
             )
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -214,7 +214,7 @@ private fun ReviewNotice() {
 
 @Composable
 private fun FieldSupportingText(
-    error: String?,
+    error: BayEditorFieldError?,
     count: Int,
     maximum: Int,
 ) {
@@ -222,7 +222,7 @@ private fun FieldSupportingText(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(error.orEmpty())
+        Text(error?.localizedEditorMessage().orEmpty())
         Text(stringResource(Res.string.bay_editor_character_count, count, maximum))
     }
 }

@@ -1,7 +1,6 @@
 package com.melashkov.mcparking.ui.bayEditor.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
@@ -68,11 +67,10 @@ private fun BayEditorEntry(initialData: BayEditorInitialData) {
     val viewModel = koinViewModel<BayEditorViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(initialData) {
-        viewModel.initialize(initialData)
-    }
-
-    BayEditorScreen(uiState = state)
+    BayEditorScreen(
+        initialData = initialData,
+        uiState = state,
+    )
 }
 
 private val ParkingType.isReportableType: Boolean

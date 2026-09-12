@@ -1,12 +1,10 @@
 package com.melashkov.mcparking.ui.bayEditor
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,7 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
@@ -27,20 +24,31 @@ import ukmotorcycleparking.shared.generated.resources.bay_editor_suggest_edit_ti
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Suppress("DEPRECATION")
 @Composable
-fun BayEditorScreen(uiState: BayEditorUiState) {
+fun BayEditorScreen(
+    initialData: BayEditorInitialData,
+    uiState: BayEditorUiState,
+) {
+    val formState = rememberBayEditorFormState(initialData)
     val formScrollState = rememberScrollState()
-
-    BackHandler(enabled = uiState.isLocationPickerOpen) {
-        uiState.eventSink(BayEditorEvent.DismissLocationPicker)
+    val submit: () -> Unit = {
+        formState.submissionOrNull()?.let { submission ->
+            uiState.eventSink(BayEditorEvent.Submit(submission))
+        }
     }
 
-    if (uiState.isLocationPickerOpen && uiState.location != null) {
+    BackHandler(enabled = formState.isLocationPickerOpen) {
+        formState.dismissLocationPicker()
+    }
+
+    val pickerLocation = formState.location
+    if (formState.isLocationPickerOpen && pickerLocation != null) {
         ParkingLocationPicker(
-            initialLocation = uiState.location,
-            type = uiState.type,
-            onBack = { uiState.eventSink(BayEditorEvent.DismissLocationPicker) },
+            initialLocation = pickerLocation,
+            type = formState.type,
+            onBack = formState::dismissLocationPicker,
             onLocationSelected = {
-                uiState.eventSink(BayEditorEvent.LocationSelected(it))
+                formState.updateLocation(it)
+                uiState.eventSink(BayEditorEvent.ClearSubmissionError)
             },
         )
         return
@@ -49,65 +57,53 @@ fun BayEditorScreen(uiState: BayEditorUiState) {
     Scaffold(
         topBar = {
             EditorTopBar(
-                mode = uiState.mode,
+                mode = formState.mode,
                 onBack = { uiState.eventSink(BayEditorEvent.Back) },
             )
         },
         bottomBar = {
-            if (uiState.isInitialized) {
-                EditorSubmitBar(
-                    mode = uiState.mode,
-                    isSubmitting = uiState.isSubmitting,
-                    submissionError = uiState.submissionError,
-                    onSubmit = { uiState.eventSink(BayEditorEvent.Submit) },
-                )
-            }
+            EditorSubmitBar(
+                mode = formState.mode,
+                isSubmitting = uiState.isSubmitting,
+                submissionError = uiState.submissionError,
+                onSubmit = submit,
+            )
         },
     ) { contentPadding ->
-        if (uiState.isInitialized) {
-            BayEditorForm(
-                mode = uiState.mode,
-                title = uiState.title,
-                titleError = uiState.titleError,
-                onTitleChanged = {
-                    uiState.eventSink(BayEditorEvent.TitleChanged(it))
-                },
-                type = uiState.type,
-                typeError = uiState.typeError,
-                onTypeSelected = {
-                    uiState.eventSink(BayEditorEvent.TypeChanged(it))
-                },
-                location = uiState.location,
-                locationError = uiState.locationError,
-                onChooseLocation = {
-                    uiState.eventSink(BayEditorEvent.ChooseLocation)
-                },
-                description = uiState.description,
-                descriptionError = uiState.descriptionError,
-                onDescriptionChanged = {
-                    uiState.eventSink(BayEditorEvent.DescriptionChanged(it))
-                },
-                onSubmit = { uiState.eventSink(BayEditorEvent.Submit) },
-                scrollState = formScrollState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
-        }
+        BayEditorForm(
+            mode = formState.mode,
+            title = formState.title,
+            titleError = formState.titleError,
+            onTitleChanged = {
+                formState.updateTitle(it)
+                uiState.eventSink(BayEditorEvent.ClearSubmissionError)
+            },
+            type = formState.type,
+            typeError = formState.typeError,
+            onTypeSelected = {
+                formState.updateType(it)
+                uiState.eventSink(BayEditorEvent.ClearSubmissionError)
+            },
+            location = formState.location,
+            locationError = formState.locationError,
+            onChooseLocation = formState::showLocationPicker,
+            description = formState.description,
+            descriptionError = formState.descriptionError,
+            onDescriptionChanged = {
+                formState.updateDescription(it)
+                uiState.eventSink(BayEditorEvent.ClearSubmissionError)
+            },
+            onSubmit = submit,
+            scrollState = formScrollState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+        )
     }
 
     if (uiState.isSubmitted) {
         SubmissionSuccessDialog(
-            mode = uiState.mode,
+            mode = formState.mode,
             onDone = { uiState.eventSink(BayEditorEvent.Done) },
         )
     }

@@ -27,7 +27,7 @@ import ukmotorcycleparking.shared.generated.resources.parking_type_label
 internal fun ParkingTypeSelector(
     mode: BayEditorMode,
     selected: ParkingType?,
-    error: String?,
+    error: BayEditorFieldError?,
     onSelected: (ParkingType) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -36,7 +36,7 @@ internal fun ParkingTypeSelector(
             style = MaterialTheme.typography.titleSmall,
         )
 
-        BayEditorViewModel.EditableParkingTypes.chunked(2).forEach { rowTypes ->
+        BayEditorFormState.EditableParkingTypes.chunked(2).forEach { rowTypes ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -84,7 +84,7 @@ internal fun ParkingTypeSelector(
 
         error?.let {
             Text(
-                text = it,
+                text = it.localizedEditorMessage(),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
             )

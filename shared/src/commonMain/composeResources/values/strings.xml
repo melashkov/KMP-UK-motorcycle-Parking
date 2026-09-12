@@ -29,6 +29,11 @@
     <string name="bay_editor_submit_edit">Submit suggested edit</string>
     <string name="bay_editor_submit_new">Submit new bay</string>
     <string name="bay_editor_character_count">%1$d/%2$d</string>
+    <string name="bay_editor_error_name_required">Enter a name for this parking bay</string>
+    <string name="bay_editor_error_name_too_long">Use %1$d characters or fewer</string>
+    <string name="bay_editor_error_description_too_long">Use %1$d characters or fewer</string>
+    <string name="bay_editor_error_type_required">Choose a parking type</string>
+    <string name="bay_editor_error_location_required">Choose a location</string>
     <string name="bay_editor_error_offline">You're offline. Check your connection and try again.</string>
     <string name="bay_editor_error_server_unavailable">The server is unavailable. Please try again shortly.</string>
     <string name="bay_editor_error_rate_limited">Too many requests. Please wait and try again.</string>

@@ -2,6 +2,7 @@ package com.melashkov.mcparking.ui.baysMap
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.interfaces.DataError
@@ -23,7 +24,7 @@ sealed interface MapUiEvent {
     data class InitialViewport(val viewport: MapViewport) : MapUiEvent
     data class ViewportChanged(val viewport: MapViewport) : MapUiEvent
     data object SearchCurrentArea : MapUiEvent
-    data object AddBay : MapUiEvent
+    data class AddBay(val location: GeoCoordinate) : MapUiEvent
     data class NavigateToBay(val bay: ParkingBay) : MapUiEvent
     data class ShareBay(val bay: ParkingBay) : MapUiEvent
     data class SelectedBay(val bay: ParkingBay) : MapUiEvent
@@ -63,13 +64,21 @@ class BaysMapViewModel(
     val uiState = _uiState.asStateFlow()
 
     private var hasSearchedInitialArea = false
+    private var lastSearchedViewport: MapViewport? = null
 
     private fun onEvent(event: MapUiEvent) {
         when (event) {
             is MapUiEvent.InitialViewport -> searchInitialArea(event.viewport)
             is MapUiEvent.ViewportChanged -> onMapViewportChanged(event.viewport)
             MapUiEvent.SearchCurrentArea -> searchCurrentArea()
-            MapUiEvent.AddBay -> appNavigationSink.navigate(AddBayRoute)
+            is MapUiEvent.AddBay -> {
+                appNavigationSink.navigate(
+                    AddBayRoute(
+                        latitude = event.location.latitude,
+                        longitude = event.location.longitude,
+                    ),
+                )
+            }
 
             is MapUiEvent.SelectedBay -> {
                 _uiState.update { it.copy(selectedBay = event.bay) }
@@ -88,7 +97,16 @@ class BaysMapViewModel(
             }
 
             is MapUiEvent.SuggestEdit -> {
-                appNavigationSink.navigate(EditBayRoute(event.bay.id))
+                appNavigationSink.navigate(
+                    EditBayRoute(
+                        bayId = event.bay.id,
+                        title = event.bay.title,
+                        description = event.bay.description,
+                        type = event.bay.type.value,
+                        latitude = event.bay.position.latitude,
+                        longitude = event.bay.position.longitude,
+                    ),
+                )
             }
 
             is MapUiEvent.OpenStreetView -> {
@@ -116,10 +134,10 @@ class BaysMapViewModel(
     private fun onMapViewportChanged(viewport: MapViewport) {
         _uiState.update { state ->
             state.copy(
-                currentViewport  = viewport,
+                currentViewport = viewport,
                 showSearchThisArea = shouldShowSearchThisArea(
                     viewport = viewport,
-                    lastSearchedViewport = state.currentViewport,
+                    lastSearchedViewport = lastSearchedViewport,
                 ),
             )
         }
@@ -128,30 +146,29 @@ class BaysMapViewModel(
     private fun searchCurrentArea() {
         if (_uiState.value.isLoading) return
 
+        val viewport = _uiState.value.currentViewport
+        if (viewport == null) {
+            _uiState.update {
+                it.copy(
+                    showSearchThisArea = true,
+                    error = MapUiError.Unknown,
+                )
+            }
+            return
+        }
+
         _uiState.update {
-            it.copy(showSearchThisArea = false)
+            it.copy(
+                isLoading = true,
+                showSearchThisArea = false,
+                error = null,
+            )
         }
 
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    error = null,
-                )
-            }
-            val viewport = _uiState.value.currentViewport
-            if (viewport == null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        showSearchThisArea = true,
-                        error = MapUiError.Unknown,
-                    )
-                }
-                return@launch
-            }
             when (val result = searchParkingBays(viewport)) {
                 is SearchParkingResult.Success -> {
+                    lastSearchedViewport = viewport
                     _uiState.update {
                         val bays = result.bays.toImmutableList()
                         it.copy(
@@ -160,7 +177,12 @@ class BaysMapViewModel(
                                 bays.firstOrNull { bay -> bay.id == selected.id }
                             },
                             isLoading = false,
-                            showSearchThisArea = false,
+                            showSearchThisArea = it.currentViewport?.let { current ->
+                                shouldShowSearchThisArea(
+                                    viewport = current,
+                                    lastSearchedViewport = lastSearchedViewport,
+                                )
+                            } ?: false,
                             error = null,
                         )
                     }

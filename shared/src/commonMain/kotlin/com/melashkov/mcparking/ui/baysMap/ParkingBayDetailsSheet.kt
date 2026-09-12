@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,69 +36,76 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.entity.ParkingType
+import com.melashkov.mcparking.ui.localizedLabel
+import org.jetbrains.compose.resources.stringResource
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_navigate
+import ukmotorcycleparking.shared.generated.resources.action_share
+import ukmotorcycleparking.shared.generated.resources.action_street_view
+import ukmotorcycleparking.shared.generated.resources.action_suggest_edit
+import ukmotorcycleparking.shared.generated.resources.bay_details_fallback_name
+import ukmotorcycleparking.shared.generated.resources.bay_details_section
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ParkingBayDetailsSheet(
+internal fun ParkingBayDetailsSheetContent(
     bay: ParkingBay,
-    onDismissRequest: () -> Unit,
     onNavigate: () -> Unit,
     onShare: () -> Unit,
     onSuggestEdit: () -> Unit,
     onStreetView: () -> Unit,
 ) {
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        containerColor = MaterialTheme.colorScheme.surface,
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .navigationBarsPadding()
+            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .navigationBarsPadding()
-                .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+            Image(
+                painter = rememberParkingBayPinPainter(bay.type),
+                contentDescription = null,
+                modifier = Modifier.size(width = 40.dp, height = 50.dp),
+            )
+
+            Spacer(Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Image(
-                    painter = rememberParkingBayPinPainter(bay.type),
-                    contentDescription = null,
-                    modifier = Modifier.size(width = 40.dp, height = 50.dp),
+                Text(
+                    text = bay.title.ifBlank {
+                        stringResource(Res.string.bay_details_fallback_name)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
                 )
-
-                Spacer(Modifier.width(16.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = bay.title.ifBlank { "Motorcycle parking" },
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    ParkingTypeBadge(bay.type)
-                }
+                ParkingTypeBadge(bay.type)
             }
+        }
 
-            val hasDescription = bay.description.isNotBlank()
+        val hasDescription = bay.description.isNotBlank()
 
-            if (hasDescription) {
-                SubtleDivider()
-                DetailItem(label = "Details", value = bay.description)
-            }
-
+        if (hasDescription) {
             SubtleDivider()
-
-            ParkingBayActionButtons(
-                onNavigate = onNavigate,
-                onShare = onShare,
-                onSuggestEdit = onSuggestEdit,
-                onStreetView = onStreetView,
+            DetailItem(
+                label = stringResource(Res.string.bay_details_section),
+                value = bay.description,
             )
         }
+
+        SubtleDivider()
+
+        ParkingBayActionButtons(
+            onNavigate = onNavigate,
+            onShare = onShare,
+            onSuggestEdit = onSuggestEdit,
+            onStreetView = onStreetView,
+        )
     }
 }
 
@@ -126,13 +131,13 @@ private fun ParkingBayActionButtons(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ParkingBayActionButton(
-                label = "Navigate",
+                label = stringResource(Res.string.action_navigate),
                 icon = Icons.Default.Directions,
                 onClick = onNavigate,
                 modifier = Modifier.weight(1f),
             )
             ParkingBayActionButton(
-                label = "Share",
+                label = stringResource(Res.string.action_share),
                 icon = Icons.Default.Share,
                 onClick = onShare,
                 modifier = Modifier.weight(1f),
@@ -144,13 +149,13 @@ private fun ParkingBayActionButtons(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ParkingBayActionButton(
-                label = "Suggest edit",
+                label = stringResource(Res.string.action_suggest_edit),
                 icon = Icons.Default.Edit,
                 onClick = onSuggestEdit,
                 modifier = Modifier.weight(1f),
             )
             ParkingBayActionButton(
-                label = "Street View",
+                label = stringResource(Res.string.action_street_view),
                 icon = Icons.Default.Streetview,
                 onClick = onStreetView,
                 modifier = Modifier.weight(1f),
@@ -201,7 +206,7 @@ private fun ParkingTypeBadge(type: ParkingType) {
                     .background(color),
             )
             Text(
-                text = type.description,
+                text = type.localizedLabel(),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )

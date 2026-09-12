@@ -1,8 +1,6 @@
 package com.melashkov.mcparking.ui.baysMap
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -36,17 +34,47 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.Position
+import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
+import ukmotorcycleparking.shared.generated.resources.action_add_bay
 
-@OptIn(FlowPreview::class)
 @Composable
 fun BaysMap(
     uiState: MapUiState
+) {
+    ParkingBayDetailsScaffold(
+        bay = uiState.selectedBay,
+        onDismissRequest = {
+            uiState.eventSink(MapUiEvent.DismissBayDetails)
+        },
+        onNavigate = {
+            uiState.eventSink(MapUiEvent.NavigateToBay(it))
+        },
+        onShare = {
+            uiState.eventSink(MapUiEvent.ShareBay(it))
+        },
+        onSuggestEdit = {
+            uiState.eventSink(MapUiEvent.SuggestEdit(it))
+        },
+        onStreetView = {
+            uiState.eventSink(MapUiEvent.OpenStreetView(it))
+        },
+    ) {
+        BaysMapContent(uiState)
+    }
+}
+
+@OptIn(FlowPreview::class)
+@Composable
+private fun BaysMapContent(
+    uiState: MapUiState,
 ) {
     val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
@@ -115,69 +143,49 @@ fun BaysMap(
                 uiState.eventSink(MapUiEvent.SearchCurrentArea)
             },
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(top = 12.dp),
+                .padding(bottom = 16.dp),
         )
 
-        Column(
+        ExtendedFloatingActionButton(
+            onClick = {
+                uiState.eventSink(
+                    MapUiEvent.AddBay(cameraState.position.target.toGeoCoordinate()),
+                )
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.AddLocationAlt,
+                    contentDescription = null,
+                )
+            },
+            text = { Text(stringResource(Res.string.action_add_bay)) },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(16.dp),
+        )
+
+        SmallFloatingActionButton(
+            onClick = {
+                if (locationPermission.granted) {
+                    locateRequest++
+                } else {
+                    locateWhenGranted = true
+                    locationPermission.request()
+                }
+            },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SmallFloatingActionButton(
-                onClick = {
-                    if (locationPermission.granted) {
-                        locateRequest++
-                    } else {
-                        locateWhenGranted = true
-                        locationPermission.request()
-                    }
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MyLocation,
-                    contentDescription = "My location",
-                )
-            }
-
-            ExtendedFloatingActionButton(
-                onClick = {
-                    uiState.eventSink(MapUiEvent.AddBay)
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.AddLocationAlt,
-                        contentDescription = null,
-                    )
-                },
-                text = { Text("Add bay") },
+            Icon(
+                imageVector = Icons.Default.MyLocation,
+                contentDescription = stringResource(Res.string.accessibility_my_location),
             )
         }
-    }
-
-    uiState.selectedBay?.let { bay ->
-        ParkingBayDetailsSheet(
-            bay = bay,
-            onDismissRequest = {
-                uiState.eventSink(MapUiEvent.DismissBayDetails)
-            },
-            onNavigate = {
-                uiState.eventSink(MapUiEvent.NavigateToBay(bay))
-            },
-            onShare = {
-                uiState.eventSink(MapUiEvent.ShareBay(bay))
-            },
-            onSuggestEdit = {
-                uiState.eventSink(MapUiEvent.SuggestEdit(bay))
-            },
-            onStreetView = {
-                uiState.eventSink(MapUiEvent.OpenStreetView(bay))
-            },
-        )
     }
 }
 

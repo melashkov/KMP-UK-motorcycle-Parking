@@ -9,12 +9,19 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Singleton
+import org.koin.core.scope.Scope
 
 @Module
 class NetworkModule {
 
     @Singleton
-    fun provideHttpClient(): HttpClient =
+    fun provideApiUrlProvider(scope: Scope): ApiUrlProvider =
+        platformApiUrlProvider(scope)
+
+    @Singleton
+    fun provideHttpClient(
+        apiUrlProvider: ApiUrlProvider,
+    ): HttpClient =
         HttpClient {
             expectSuccess = true
 
@@ -33,7 +40,7 @@ class NetworkModule {
             }
 
             defaultRequest {
-                url("http://192.168.1.91:8080/api/")
+                url(apiUrlProvider.baseUrl)
             }
         }
 }

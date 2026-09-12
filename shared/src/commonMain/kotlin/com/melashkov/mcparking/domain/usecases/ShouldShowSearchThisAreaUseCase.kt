@@ -10,7 +10,6 @@ class ShouldShowSearchThisAreaUseCase {
         viewport: MapViewport,
         lastSearchedViewport: MapViewport?,
     ): Boolean {
-        println("ShouldShowSearchThisAreaUseCase, $viewport")
         if (viewport.zoom < 12.0) {
             return false
         }

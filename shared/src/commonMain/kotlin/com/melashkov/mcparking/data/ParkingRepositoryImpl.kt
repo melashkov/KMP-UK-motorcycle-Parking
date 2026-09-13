@@ -15,7 +15,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.statement.HttpResponse
-import io.ktor.serialization.ContentConvertException
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 import org.koin.core.annotation.Singleton
@@ -49,7 +48,9 @@ class ParkingRepositoryImpl(
             DataResult.Failure(
                 e.response.toServerErrorOrNull() ?: AppError.ServerUnavailable,
             )
-        } catch (_: ContentConvertException) {
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
             DataResult.Failure(AppError.Unknown)
         }
     }
@@ -79,7 +80,9 @@ class ParkingRepositoryImpl(
             DataResult.Failure(
                 e.response.toServerErrorOrNull() ?: AppError.ServerUnavailable,
             )
-        } catch (_: ContentConvertException) {
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
             DataResult.Failure(AppError.Unknown)
         }
     }

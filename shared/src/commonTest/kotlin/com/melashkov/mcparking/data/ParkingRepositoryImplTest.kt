@@ -16,11 +16,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class ParkingRepositoryImplTest {
@@ -152,6 +154,26 @@ class ParkingRepositoryImplTest {
             )
         } finally {
             fixture.close()
+        }
+    }
+
+    @Test
+    fun cancellationIsNotConvertedToAnAppError() = runTest {
+        val client = HttpClient(
+            MockEngine { throw CancellationException("cancelled") },
+        ) {
+            expectSuccess = true
+            install(ContentNegotiation) { json() }
+            defaultRequest { url("https://parking.test/api/") }
+        }
+        val repository = ParkingRepositoryImpl(ParkingRemoteDataSource(client))
+
+        try {
+            assertFailsWith<CancellationException> {
+                repository.submitParkingBay(testSubmission())
+            }
+        } finally {
+            client.close()
         }
     }
 

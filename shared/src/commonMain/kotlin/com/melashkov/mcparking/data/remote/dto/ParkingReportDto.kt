@@ -16,6 +16,7 @@ data class ParkingReportRequestDto(
 @Serializable
 data class ParkingReportResponseDto(
     val status: String,
+    val message: String? = null,
 )
 
 fun ParkingBaySubmission.toDto() =

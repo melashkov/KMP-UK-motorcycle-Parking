@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.domain.entity.ParkingBay
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.usecases.SearchParkingBaysUseCase
 import com.melashkov.mcparking.domain.usecases.SearchParkingResult
 import com.melashkov.mcparking.domain.usecases.ShouldShowSearchThisAreaUseCase
@@ -31,6 +31,7 @@ sealed interface MapUiEvent {
     data class SuggestEdit(val bay: ParkingBay) : MapUiEvent
     data class OpenStreetView(val bay: ParkingBay) : MapUiEvent
     data object DismissBayDetails : MapUiEvent
+    data object DismissSearchMessage : MapUiEvent
 }
 
 data class MapUiState(
@@ -38,18 +39,11 @@ data class MapUiState(
     val selectedBay: ParkingBay? = null,
     val isLoading: Boolean = false,
     val showSearchThisArea: Boolean = false,
-    val error: MapUiError? = null,
+    val error: AppError? = null,
+    val requiresZoomToSearch: Boolean = false,
     val currentViewport: MapViewport? = null,
     val eventSink: (MapUiEvent) -> Unit = {},
 )
-
-sealed interface MapUiError {
-    data object ZoomInToSearch : MapUiError
-    data object Offline : MapUiError
-    data object ServerUnavailable : MapUiError
-    data object Unauthorized : MapUiError
-    data object Unknown : MapUiError
-}
 
 @KoinViewModel
 class BaysMapViewModel(
@@ -86,6 +80,15 @@ class BaysMapViewModel(
 
             MapUiEvent.DismissBayDetails -> {
                 _uiState.update { it.copy(selectedBay = null) }
+            }
+
+            MapUiEvent.DismissSearchMessage -> {
+                _uiState.update {
+                    it.copy(
+                        error = null,
+                        requiresZoomToSearch = false,
+                    )
+                }
             }
 
             is MapUiEvent.NavigateToBay -> {
@@ -139,6 +142,8 @@ class BaysMapViewModel(
                     viewport = viewport,
                     lastSearchedViewport = lastSearchedViewport,
                 ),
+                error = null,
+                requiresZoomToSearch = false,
             )
         }
     }
@@ -151,7 +156,8 @@ class BaysMapViewModel(
             _uiState.update {
                 it.copy(
                     showSearchThisArea = true,
-                    error = MapUiError.Unknown,
+                    error = AppError.Unknown,
+                    requiresZoomToSearch = false,
                 )
             }
             return
@@ -162,6 +168,7 @@ class BaysMapViewModel(
                 isLoading = true,
                 showSearchThisArea = false,
                 error = null,
+                requiresZoomToSearch = false,
             )
         }
 
@@ -184,6 +191,7 @@ class BaysMapViewModel(
                                 )
                             } ?: false,
                             error = null,
+                            requiresZoomToSearch = false,
                         )
                     }
                 }
@@ -193,7 +201,8 @@ class BaysMapViewModel(
                         it.copy(
                             isLoading = false,
                             showSearchThisArea = true,
-                            error = MapUiError.ZoomInToSearch,
+                            error = null,
+                            requiresZoomToSearch = true,
                         )
                     }
                 }
@@ -203,18 +212,12 @@ class BaysMapViewModel(
                         it.copy(
                             isLoading = false,
                             showSearchThisArea = true,
-                            error = result.error.toUiError(),
+                            error = result.error,
+                            requiresZoomToSearch = false,
                         )
                     }
                 }
             }
         }
     }
-}
-
-private fun DataError.toUiError(): MapUiError = when (this) {
-    DataError.Offline -> MapUiError.Offline
-    DataError.ServerUnavailable -> MapUiError.ServerUnavailable
-    DataError.Unauthorized -> MapUiError.Unauthorized
-    else -> MapUiError.Unknown
 }

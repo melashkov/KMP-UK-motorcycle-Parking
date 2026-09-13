@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -15,12 +18,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
+import com.melashkov.mcparking.ui.shared.localizedMessage
 import org.jetbrains.compose.resources.stringResource
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_done
 import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_edit
 import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_new
+import ukmotorcycleparking.shared.generated.resources.bay_editor_submission_error_title
 import ukmotorcycleparking.shared.generated.resources.submission_success_add_message
 import ukmotorcycleparking.shared.generated.resources.submission_success_edit_message
 import ukmotorcycleparking.shared.generated.resources.submission_success_title
@@ -29,7 +34,7 @@ import ukmotorcycleparking.shared.generated.resources.submission_success_title
 internal fun EditorSubmitBar(
     mode: BayEditorMode,
     isSubmitting: Boolean,
-    submissionError: DataError?,
+    submissionError: AppError?,
     onSubmit: () -> Unit,
 ) {
     Surface(shadowElevation = 3.dp) {
@@ -39,12 +44,10 @@ internal fun EditorSubmitBar(
                 .imePadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            submissionError?.let {
-                Text(
-                    text = it.localizedEditorMessage(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(bottom = 8.dp),
+            submissionError?.let { error ->
+                SubmissionErrorMessage(
+                    error = error,
+                    modifier = Modifier.padding(bottom = 12.dp),
                 )
             }
             Button(
@@ -67,6 +70,38 @@ internal fun EditorSubmitBar(
                     },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SubmissionErrorMessage(
+    error: AppError,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Icon(
+                imageVector = Icons.Default.ErrorOutline,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .size(20.dp),
+            )
+            Text(
+                text = stringResource(Res.string.bay_editor_submission_error_title),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = error.localizedMessage(),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 2.dp),
+            )
         }
     }
 }

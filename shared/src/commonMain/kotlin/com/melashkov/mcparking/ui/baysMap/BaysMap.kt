@@ -1,8 +1,11 @@
 package com.melashkov.mcparking.ui.baysMap
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -137,16 +140,38 @@ private fun BaysMapContent(
             }
         }
 
-        SearchThisAreaButton(
-            show = uiState.showSearchThisArea,
-            onClick = {
-                uiState.eventSink(MapUiEvent.SearchCurrentArea)
-            },
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(horizontal = 16.dp)
                 .padding(bottom = 16.dp),
-        )
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            MapSearchMessage(
+                error = uiState.error,
+                requiresZoom = uiState.requiresZoomToSearch,
+                onRetry = {
+                    uiState.eventSink(MapUiEvent.SearchCurrentArea)
+                },
+                onDismiss = {
+                    uiState.eventSink(MapUiEvent.DismissSearchMessage)
+                },
+            )
+
+            if (uiState.error != null || uiState.requiresZoomToSearch) {
+                Spacer(Modifier.height(8.dp))
+            }
+
+            SearchThisAreaButton(
+                show = uiState.showSearchThisArea &&
+                    uiState.error == null &&
+                    !uiState.requiresZoomToSearch,
+                onClick = {
+                    uiState.eventSink(MapUiEvent.SearchCurrentArea)
+                },
+            )
+        }
 
         ExtendedFloatingActionButton(
             onClick = {

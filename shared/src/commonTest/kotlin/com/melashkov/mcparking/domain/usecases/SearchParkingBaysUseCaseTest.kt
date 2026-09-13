@@ -2,7 +2,7 @@ package com.melashkov.mcparking.domain.usecases
 
 import com.melashkov.mcparking.FakeParkingRepository
 import com.melashkov.mcparking.TestBounds
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.testBay
 import com.melashkov.mcparking.testViewport
@@ -41,13 +41,13 @@ class SearchParkingBaysUseCaseTest {
     @Test
     fun repositoryFailureIsPreserved() = runTest {
         val repository = FakeParkingRepository(
-            searchResult = DataResult.Failure(DataError.Offline),
+            searchResult = DataResult.Failure(AppError.ConnectionFailed),
         )
 
         val result = SearchParkingBaysUseCase(repository)(testViewport())
 
         assertEquals(
-            DataError.Offline,
+            AppError.ConnectionFailed,
             assertIs<SearchParkingResult.Failure>(result).error,
         )
     }

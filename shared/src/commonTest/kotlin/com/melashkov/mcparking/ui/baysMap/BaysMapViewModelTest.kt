@@ -3,7 +3,7 @@ package com.melashkov.mcparking.ui.baysMap
 import com.melashkov.mcparking.FakeParkingRepository
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.usecases.SearchParkingBaysUseCase
 import com.melashkov.mcparking.domain.usecases.ShouldShowSearchThisAreaUseCase
@@ -110,18 +110,66 @@ class BaysMapViewModelTest {
     }
 
     @Test
-    fun failedSearchExposesMappedUiError() = runTest(dispatcher) {
+    fun failedSearchExposesDomainError() = runTest(dispatcher) {
         val repository = FakeParkingRepository(
-            searchResult = DataResult.Failure(DataError.Offline),
+            searchResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
 
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
         advanceUntilIdle()
 
-        assertEquals(MapUiError.Offline, viewModel.uiState.value.error)
+        assertEquals(AppError.ConnectionFailed, viewModel.uiState.value.error)
         assertTrue(viewModel.uiState.value.showSearchThisArea)
         assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun dismissingSearchErrorKeepsSearchActionAvailable() = runTest(dispatcher) {
+        val repository = FakeParkingRepository(
+            searchResult = DataResult.Failure(AppError.ServerUnavailable),
+        )
+        val viewModel = createViewModel(repository)
+
+        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
+        advanceUntilIdle()
+        viewModel.uiState.value.eventSink(MapUiEvent.DismissSearchMessage)
+
+        assertNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.showSearchThisArea)
+    }
+
+    @Test
+    fun movingMapClearsStaleSearchError() = runTest(dispatcher) {
+        val repository = FakeParkingRepository(
+            searchResult = DataResult.Failure(AppError.ConnectionFailed),
+        )
+        val viewModel = createViewModel(repository)
+
+        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
+        advanceUntilIdle()
+        viewModel.uiState.value.eventSink(
+            MapUiEvent.ViewportChanged(
+                testViewport(center = GeoCoordinate(51.51, -0.12)),
+            ),
+        )
+
+        assertNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.showSearchThisArea)
+    }
+
+    @Test
+    fun areaTooLargeIsExposedAsZoomGuidanceNotAnAppError() = runTest(dispatcher) {
+        val viewModel = createViewModel(FakeParkingRepository())
+
+        viewModel.uiState.value.eventSink(
+            MapUiEvent.InitialViewport(testViewport().copy(zoom = 12.0)),
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.requiresZoomToSearch)
+        assertNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.showSearchThisArea)
     }
 
     @Test

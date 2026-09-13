@@ -4,7 +4,7 @@ import com.melashkov.mcparking.FakeParkingRepository
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.usecases.SubmitParkingBayUseCase
 import com.melashkov.mcparking.ui.navigation.AppNavigationSink
@@ -56,7 +56,7 @@ class BayEditorViewModelTest {
     @Test
     fun failedSubmissionShowsUsefulErrorAndCanBeRetried() = runTest(dispatcher) {
         val repository = FakeParkingRepository(
-            submissionResult = DataResult.Failure(DataError.Offline),
+            submissionResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
         val submission = validSubmission()
@@ -64,7 +64,7 @@ class BayEditorViewModelTest {
         viewModel.uiState.value.eventSink(BayEditorEvent.Submit(submission))
         advanceUntilIdle()
 
-        assertEquals(DataError.Offline, viewModel.uiState.value.submissionError)
+        assertEquals(AppError.ConnectionFailed, viewModel.uiState.value.submissionError)
         assertFalse(viewModel.uiState.value.isSubmitting)
         assertFalse(viewModel.uiState.value.isSubmitted)
 
@@ -79,7 +79,7 @@ class BayEditorViewModelTest {
     @Test
     fun changingDraftClearsPreviousSubmissionError() = runTest(dispatcher) {
         val repository = FakeParkingRepository(
-            submissionResult = DataResult.Failure(DataError.Offline),
+            submissionResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
 

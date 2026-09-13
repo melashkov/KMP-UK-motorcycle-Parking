@@ -3,7 +3,7 @@ package com.melashkov.mcparking.ui.bayEditor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.usecases.SubmitParkingBayUseCase
 import com.melashkov.mcparking.ui.navigation.AppNavigationSink
@@ -23,7 +23,7 @@ sealed interface BayEditorEvent {
 data class BayEditorUiState(
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
-    val submissionError: DataError? = null,
+    val submissionError: AppError? = null,
     val eventSink: (BayEditorEvent) -> Unit = {},
 )
 

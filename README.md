@@ -32,9 +32,9 @@ commands and options:
 The app selects its API automatically:
 
 - Android emulator builds use the isolated development API through the host alias at
-  `http://10.0.2.2:8080/api_dev/`.
+  `http://10.0.2.2:8080/api/`.
 - Android debug builds on a physical USB device and iOS debug builds use
-  `http://127.0.0.1:8080/api_dev/`.
+  `http://127.0.0.1:8080/api/`.
 - Release builds use `https://melashkov.com/api/`.
 
 The production URL is defined in
@@ -82,7 +82,7 @@ macOS firewall. A DHCP reservation for the Mac can keep that development address
 Verify the API from the Mac before launching the app:
 
 ```bash
-curl "http://127.0.0.1:8080/api_dev/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
+curl "http://127.0.0.1:8080/api/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
 ```
 
 On a physical iOS device, opening the LAN-address version of the same URL in Safari is a useful

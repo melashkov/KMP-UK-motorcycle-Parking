@@ -2,7 +2,7 @@ package com.melashkov.mcparking.domain.usecases
 
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.domain.entity.ParkingBay
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.ParkingRepository
 import org.koin.core.annotation.Singleton
@@ -44,6 +44,6 @@ sealed interface SearchParkingResult {
     data object AreaTooLarge : SearchParkingResult
 
     data class Failure(
-        val error: DataError,
+        val error: AppError,
     ) : SearchParkingResult
 }

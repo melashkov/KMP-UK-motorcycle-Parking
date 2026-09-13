@@ -4,7 +4,7 @@ import com.melashkov.mcparking.data.remote.ParkingRemoteDataSource
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
-import com.melashkov.mcparking.domain.interfaces.DataError
+import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -16,11 +16,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class ParkingRepositoryImplTest {
@@ -40,14 +42,52 @@ class ParkingRepositoryImplTest {
     }
 
     @Test
-    fun rejectedApiStatusReturnsUnknownFailure() = runTest {
+    fun rejectedApiStatusReturnsServerFailure() = runTest {
         val fixture = repositoryResponding(
-            body = """{"status":"error"}""",
+            body = """{"status":"error","message":"Parent parking bay does not exist"}""",
         )
 
         try {
             assertEquals(
-                DataError.Unknown,
+                AppError.ServerError("Parent parking bay does not exist"),
+                assertIs<DataResult.Failure>(
+                    fixture.repository.submitParkingBay(testSubmission()),
+                ).error,
+            )
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun clientErrorBodyIsPassedThroughAsServerFailure() = runTest {
+        val fixture = repositoryResponding(
+            body = """{"status":"error","message":"Invalid parking type"}""",
+            status = HttpStatusCode.UnprocessableEntity,
+        )
+
+        try {
+            assertEquals(
+                AppError.ServerError("Invalid parking type"),
+                assertIs<DataResult.Failure>(
+                    fixture.repository.submitParkingBay(testSubmission()),
+                ).error,
+            )
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun serverErrorBodyIsPassedThroughAsServerFailure() = runTest {
+        val fixture = repositoryResponding(
+            body = """{"status":"error","message":"Please try again later"}""",
+            status = HttpStatusCode.InternalServerError,
+        )
+
+        try {
+            assertEquals(
+                AppError.ServerError("Please try again later"),
                 assertIs<DataResult.Failure>(
                     fixture.repository.submitParkingBay(testSubmission()),
                 ).error,
@@ -66,7 +106,7 @@ class ParkingRepositoryImplTest {
 
         try {
             assertEquals(
-                DataError.ServerUnavailable,
+                AppError.ServerUnavailable,
                 assertIs<DataResult.Failure>(
                     fixture.repository.submitParkingBay(testSubmission()),
                 ).error,
@@ -77,7 +117,7 @@ class ParkingRepositoryImplTest {
     }
 
     @Test
-    fun networkIOExceptionIsMappedToOffline() = runTest {
+    fun networkIOExceptionIsMappedToConnectionFailed() = runTest {
         val client = HttpClient(
             MockEngine { throw IOException("offline") },
         ) {
@@ -89,11 +129,49 @@ class ParkingRepositoryImplTest {
 
         try {
             assertEquals(
-                DataError.Offline,
+                AppError.ConnectionFailed,
                 assertIs<DataResult.Failure>(
                     repository.submitParkingBay(testSubmission()),
                 ).error,
             )
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun malformedResponseIsMappedToUnknownInsteadOfCrashing() = runTest {
+        val fixture = repositoryResponding(
+            body = """<br /><b>Deprecated</b>: Function curl_close() is deprecated""",
+        )
+
+        try {
+            assertEquals(
+                AppError.Unknown,
+                assertIs<DataResult.Failure>(
+                    fixture.repository.submitParkingBay(testSubmission()),
+                ).error,
+            )
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun cancellationIsNotConvertedToAnAppError() = runTest {
+        val client = HttpClient(
+            MockEngine { throw CancellationException("cancelled") },
+        ) {
+            expectSuccess = true
+            install(ContentNegotiation) { json() }
+            defaultRequest { url("https://parking.test/api/") }
+        }
+        val repository = ParkingRepositoryImpl(ParkingRemoteDataSource(client))
+
+        try {
+            assertFailsWith<CancellationException> {
+                repository.submitParkingBay(testSubmission())
+            }
         } finally {
             client.close()
         }

@@ -137,6 +137,24 @@ class ParkingRepositoryImplTest {
         }
     }
 
+    @Test
+    fun malformedResponseIsMappedToUnknownInsteadOfCrashing() = runTest {
+        val fixture = repositoryResponding(
+            body = """<br /><b>Deprecated</b>: Function curl_close() is deprecated""",
+        )
+
+        try {
+            assertEquals(
+                AppError.Unknown,
+                assertIs<DataResult.Failure>(
+                    fixture.repository.submitParkingBay(testSubmission()),
+                ).error,
+            )
+        } finally {
+            fixture.close()
+        }
+    }
+
     private fun repositoryResponding(
         body: String,
         status: HttpStatusCode = HttpStatusCode.OK,

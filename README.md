@@ -24,18 +24,48 @@ This is a Kotlin Multiplatform project targeting Android and iOS.
 Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these
 commands and options:
 
-- Android app: `./gradlew :androidApp:assembleDebug`
+- Android local API build: `./gradlew :androidApp:assembleDevDebug`
+- Android production API build: `./gradlew :androidApp:assembleProdDebug`
+- Android release build: `./gradlew :androidApp:bundleProdRelease`
 - iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
 ### API environments
 
-The app selects its API automatically:
+Android has three supported build variants:
 
-- Android emulator builds use the isolated development API through the host alias at
-  `http://10.0.2.2:8080/api/`.
-- Android debug builds on a physical USB device and iOS debug builds use
-  `http://127.0.0.1:8080/api/`.
-- Release builds use `https://melashkov.com/api/`.
+| Build variant | API | Application ID | Use it for |
+|---|---|---|---|
+| `devDebug` | Local API | `com.melashkov.mcparking.dev` | Developing against the API running on your Mac |
+| `prodDebug` | `https://melashkov.com/api/` | `com.melashkov.mcparking.dev` | Testing production with debugger and developer tools |
+| `prodRelease` | `https://melashkov.com/api/` | `com.melashkov.mcparking` | Play Store release builds |
+
+Both Android debug variants use the `.dev` application ID suffix, so you can switch between local
+and production APIs without replacing the Play Store app. Only `prodRelease` uses the production
+application ID. A development release variant is disabled to prevent accidentally shipping a build
+configured for the local API.
+
+#### Switching API in Android Studio
+
+1. Run **File → Sync Project with Gradle Files** after first pulling the flavor configuration.
+2. Open **View → Tool Windows → Build Variants**.
+3. Find the `androidApp` module and select `devDebug` for the local API or `prodDebug` for the
+   production API.
+4. Run the existing `androidApp` run configuration normally.
+
+The toolbar dropdown selects a run configuration, not an API environment. The active entry in the
+**Build Variants** window determines which API the app uses. Switching between `devDebug` and
+`prodDebug` replaces the installed `.dev` app because both variants have the same application ID.
+
+The local PHP server is required only for `devDebug`:
+
+- On the Android emulator, the app uses `http://10.0.2.2:8080/api/`.
+- On a physical Android device connected over USB, the app uses
+  `http://127.0.0.1:8080/api/` and requires `adb reverse tcp:8080 tcp:8080`.
+- `prodDebug` and `prodRelease` connect directly to production; do not start or forward the local
+  server for these variants.
+
+iOS continues to select its environment from the Xcode build: debug builds use
+`http://127.0.0.1:8080/api/`, while release builds use production.
 
 The production URL is defined in
 [ApiUrlProvider.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiUrlProvider.kt),

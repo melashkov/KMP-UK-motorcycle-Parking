@@ -13,6 +13,10 @@
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <meta-data
+            android:name="com.melashkov.mcparking.API_ENVIRONMENT"
+            android:value="${apiEnvironment}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

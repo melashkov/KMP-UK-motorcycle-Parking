@@ -58,9 +58,8 @@ The toolbar dropdown selects a run configuration, not an API environment. The ac
 
 The local PHP server is required only for `devDebug`:
 
-- On the Android emulator, the app uses `http://10.0.2.2:8080/api/`.
-- On a physical Android device connected over USB, the app uses
-  `http://127.0.0.1:8080/api/` and requires `adb reverse tcp:8080 tcp:8080`.
+- `devDebug` is emulator-only and uses `http://10.0.2.2:8080/api/`.
+- For debugging on a physical Android device, select `prodDebug` to use the production API.
 - `prodDebug` and `prodRelease` connect directly to production; do not start or forward the local
   server for these variants.
 
@@ -84,18 +83,8 @@ php -S 127.0.0.1:8080 -t html
 ```
 
 The Android emulator reaches that server through `10.0.2.2`; it does not need port forwarding.
-For a physical Android device connected over USB, forward the device's loopback port before
-launching the app:
-
-```bash
-adb reverse tcp:8080 tcp:8080
-```
-
-Confirm the forwarding rule with:
-
-```bash
-adb reverse --list
-```
+The Android `devDebug` variant is not configured for physical devices. Use `prodDebug` on a
+physical Android device.
 
 The iOS Simulator can use `127.0.0.1` directly. A physical iOS device cannot use the Mac's
 loopback address; for that case, bind PHP to all interfaces and configure the iOS development URL

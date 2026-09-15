@@ -1,23 +1,54 @@
-# UK Motorcycle Parking
+<p align="center">
+  <img src="./design-assets/motorcycle-parking-pin-blue.png" alt="UK Motorcycle Parking pin" width="120">
+</p>
 
-This is a Kotlin Multiplatform project targeting Android and iOS.
+<h1 align="center">UK Motorcycle Parking</h1>
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with
-  Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for
-  your project.
+<p align="center">
+  Find dedicated motorcycle parking across the UK.<br>
+  <strong>Free. Ad-free. Built for riders.</strong>
+</p>
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform
-  applications.
-  It contains several subfolders:
-    - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the
-      folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part,
-      the [jvmMain](./shared/src/jvmMain/kotlin)
-      folder is the appropriate location.
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.melashkov.mcparking">
+    <img src="./pics/google-play-badge.png" alt="Get it on Google Play" height="60">
+  </a>
+  <a href="https://apps.apple.com/gb/app/uk-motorcycle-parking/id6451344073">
+    <img src="./pics/app-store-badge.svg" alt="Download on the App Store" height="40">
+  </a>
+</p>
+
+UK Motorcycle Parking helps riders discover around 3,000 motorcycle parking locations across more
+than 30 UK cities. Browse nearby bays, understand the parking type at a glance, and help the
+community by submitting missing locations.
+
+## Preview
+
+<p align="center">
+  <img src="./pics/map.png" alt="Motorcycle parking bays on the map" width="280">
+  &nbsp;&nbsp;&nbsp;
+  <img src="./pics/add-parking-bay.png" alt="Add a new motorcycle parking bay" width="280">
+</p>
+
+## Features
+
+- Explore nearby motorcycle parking on an interactive map.
+- Distinguish free, paid, permit-required and unclassified bays at a glance.
+- Search for a destination and refresh results for the visible area.
+- Submit new parking bays for review.
+- Use the same free, ad-free service on Android and iOS.
+
+## Development
+
+The app is being modernised as a Kotlin Multiplatform project with shared Compose UI and business
+logic for Android and iOS.
+
+- [/androidApp](./androidApp) contains the Android application.
+- [/iosApp](./iosApp/iosApp) contains the iOS application entry point.
+- [/shared](./shared/src) contains the shared application code.
+  - [commonMain](./shared/src/commonMain/kotlin) contains cross-platform code.
+  - [androidMain](./shared/src/androidMain/kotlin) and
+    [iosMain](./shared/src/iosMain/kotlin) contain platform-specific implementations.
 
 ### Running the apps
 
@@ -63,8 +94,7 @@ The local PHP server is required only for `devDebug`:
 - `prodDebug` and `prodRelease` connect directly to production; do not start or forward the local
   server for these variants.
 
-iOS continues to select its environment from the Xcode build: debug builds use
-`http://127.0.0.1:8080/api/`, while release builds use production.
+iOS connects to the production API in both debug and release builds.
 
 The production URL is defined in
 [ApiUrlProvider.kt](./shared/src/commonMain/kotlin/com/melashkov/mcparking/di/ApiUrlProvider.kt),
@@ -86,26 +116,11 @@ The Android emulator reaches that server through `10.0.2.2`; it does not need po
 The Android `devDebug` variant is not configured for physical devices. Use `prodDebug` on a
 physical Android device.
 
-The iOS Simulator can use `127.0.0.1` directly. A physical iOS device cannot use the Mac's
-loopback address; for that case, bind PHP to all interfaces and configure the iOS development URL
-to use the Mac's LAN address:
-
-```bash
-php -S 0.0.0.0:8080 -t html
-ipconfig getifaddr en0
-```
-
-Connect the Mac and iPhone to the same network and allow incoming PHP connections through the
-macOS firewall. A DHCP reservation for the Mac can keep that development address stable.
-
 Verify the API from the Mac before launching the app:
 
 ```bash
 curl "http://127.0.0.1:8080/api/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
 ```
-
-On a physical iOS device, opening the LAN-address version of the same URL in Safari is a useful
-final connectivity check. Accept the local-network access prompt when it appears.
 
 ### Running tests
 
@@ -114,7 +129,4 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Android tests: `./gradlew :shared:testAndroidHostTest`
 - iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
 
----
-
-Learn more
-about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Built with [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).

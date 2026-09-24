@@ -1,7 +1,6 @@
 package com.melashkov.mcparking.ui.baysMap
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import kotlinx.collections.immutable.ImmutableList
@@ -30,25 +29,23 @@ fun ParkingBayMarkers(
         GeoJsonData.Features(markers.toFeatureCollection())
     }
 
-    key(geoJsonData) {
-        val markersSource = rememberGeoJsonSource(
-            data = geoJsonData,
-            options = GeoJsonOptions(
-                cluster = true,
-                clusterMinPoints = 2,
-                clusterRadius = 40,
-                clusterMaxZoom = 14,
-            ),
-        )
+    val markersSource = rememberGeoJsonSource(
+        data = geoJsonData,
+        options = GeoJsonOptions(
+            cluster = true,
+            clusterMinPoints = 2,
+            clusterRadius = 40,
+            clusterMaxZoom = 14,
+        ),
+    )
 
-        ParkingBayMarkerLayers(
-            markers = markers,
-            source = markersSource,
-            onMarkerClick = onMarkerClick,
-        )
-        ParkingBayClusterLayers(
-            source = markersSource,
-            onClusterClick = onClusterClick,
-        )
-    }
+    ParkingBayMarkerLayers(
+        markers = markers,
+        source = markersSource,
+        onMarkerClick = onMarkerClick,
+    )
+    ParkingBayClusterLayers(
+        source = markersSource,
+        onClusterClick = onClusterClick,
+    )
 }

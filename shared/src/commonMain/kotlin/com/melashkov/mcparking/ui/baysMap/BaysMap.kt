@@ -10,12 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +29,7 @@ import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
+import com.melashkov.mcparking.ui.support.MapOverflowMenu
 import com.melashkov.mcparking.ui.shared.UserLocation
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.dropWhile
@@ -46,7 +44,6 @@ import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
-import ukmotorcycleparking.shared.generated.resources.action_add_bay
 
 @Composable
 fun BaysMap(
@@ -173,19 +170,10 @@ private fun BaysMapContent(
             )
         }
 
-        ExtendedFloatingActionButton(
-            onClick = {
-                uiState.eventSink(
-                    MapUiEvent.AddBay(cameraState.position.target.toGeoCoordinate()),
-                )
+        MapOverflowMenu(
+            onAddBay = {
+                uiState.eventSink(MapUiEvent.AddBay(cameraState.position.target.toGeoCoordinate()))
             },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.AddLocationAlt,
-                    contentDescription = null,
-                )
-            },
-            text = { Text(stringResource(Res.string.action_add_bay)) },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .windowInsetsPadding(WindowInsets.safeDrawing)

@@ -58,7 +58,7 @@ private fun ParkingBayTypeMarkerLayer(
             (feature[PARKING_BAY_TYPE].asNumber() eq const(type.value)),
         iconImage = image(
             value = pinPainter,
-            size = DpSize(width = 32.dp, height = 40.dp),
+            size = DpSize(width = 36.dp, height = 36.dp),
         ),
         iconAnchor = const(SymbolAnchor.Bottom),
         iconAllowOverlap = const(true),

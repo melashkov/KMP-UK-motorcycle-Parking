@@ -1,6 +1,6 @@
 package com.melashkov.mcparking
 
-import androidx.compose.material3.MaterialTheme
+import com.melashkov.mcparking.ui.theme.ParkingAppTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.melashkov.mcparking.di.rememberKoinAppConfiguration
@@ -19,7 +19,7 @@ fun App() {
 
 @Composable
 fun AppContent() {
-    MaterialTheme {
+    ParkingAppTheme {
         AppNavigation()
     }
 }

@@ -64,4 +64,26 @@
     <string name="submission_success_title">Thanks — submitted</string>
     <string name="submission_success_add_message">The new bay has been sent for review.</string>
     <string name="submission_success_edit_message">Your suggested changes have been sent for review.</string>
+    <string name="accessibility_map_menu">Map menu</string>
+    <string name="action_developer_message">Behind the app 👋</string>
+    <string name="developer_message_history">I started UK Motorcycle Parking in 2013 to help riders find somewhere to park. I want to keep it free, without ads or subscriptions, and open to everyone who can help improve the data.</string>
+    <string name="developer_message_thanks">Thank you for all your parking reports—you keep this app useful.</string>
+    <string name="support_contribute">Want to help? Add a bay or suggest a correction.</string>
+    <string name="support_ko_fi_description">Fancy buying me a coffee? It’s completely optional—the app stays free.</string>
+    <string name="support_ko_fi">Buy me a coffee on Ko-fi</string>
+    <string name="support_link_failed">Couldn’t open your browser. You can visit %1$s instead.</string>
+    <string name="action_continue_to_map">Continue to map</string>
+    <string name="action_add_parking_bay">Add parking bay</string>
+    <string name="whats_new">What’s new</string>
+    <string name="release_title">A fresh look, still free</string>
+    <string name="release_map_title">A new map</string>
+    <string name="release_map_body">Rebuilt with OpenStreetMap as Google’s mapping costs changed. The same community parking data is still here.</string>
+    <string name="release_search_title">Location search is taking a break</string>
+    <string name="release_search_body">You can still browse the map and find parking nearby. I hope to bring location search back in a future update.</string>
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_description">Choose a theme for the app and map.</string>
+    <string name="theme_system">Use device setting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_title">Settings</string>
 </resources>

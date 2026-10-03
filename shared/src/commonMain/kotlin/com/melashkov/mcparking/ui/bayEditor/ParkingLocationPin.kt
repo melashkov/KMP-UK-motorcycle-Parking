@@ -21,4 +21,4 @@ internal fun ParkingLocationPin(
 }
 
 internal val ParkingPinWidth = 48.dp
-internal val ParkingPinHeight = 60.dp
+internal val ParkingPinHeight = 48.dp

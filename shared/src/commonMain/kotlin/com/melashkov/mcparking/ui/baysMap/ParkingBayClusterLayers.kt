@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.ui.baysMap
 
+import com.melashkov.mcparking.ui.theme.LocalDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,7 @@ internal fun ParkingBayClusterLayers(
     source: GeoJsonSource,
     onClusterClick: ((Position) -> Unit)?,
 ) {
+    val dark = LocalDarkTheme.current
     val pointCount = feature["point_count"].asNumber()
 
     CircleLayer(
@@ -35,15 +37,15 @@ internal fun ParkingBayClusterLayers(
             25 to const(20.dp),
             100 to const(28.dp),
         ),
-        color = step(
+        color = if (dark) const(Color(0xFF365D78)) else step(
             pointCount,
             const(Color(0xFF4FC3F7)),
             25 to const(Color(0xFFFFB74D)),
             100 to const(Color(0xFFE57373)),
         ),
-        opacity = const(0.9f),
-        strokeWidth = const(2.dp),
-        strokeColor = const(Color.White),
+        opacity = const(1f),
+        strokeWidth = const(if (dark) 1.dp else 2.dp),
+        strokeColor = const(if (dark) Color(0xFFB7C8D5) else Color.White),
         onClick = { features ->
             val point = features.firstOrNull()?.geometry as? Point
             if (point != null && onClusterClick != null) {
@@ -62,7 +64,7 @@ internal fun ParkingBayClusterLayers(
         textField = feature["point_count_abbreviated"].convertToString(),
         textColor = const(Color.White),
         textHaloColor = const(Color.Black),
-        textHaloWidth = const(1.dp),
+        textHaloWidth = const(if (dark) 0.dp else 1.dp),
         textSize = const(14.sp),
         textFont = const(listOf("Noto Sans Regular")),
         textAllowOverlap = const(true),

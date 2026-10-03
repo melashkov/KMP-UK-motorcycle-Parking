@@ -68,7 +68,7 @@ internal fun ParkingBayDetailsSheetContent(
             Image(
                 painter = rememberParkingBayPinPainter(bay.type),
                 contentDescription = null,
-                modifier = Modifier.size(width = 40.dp, height = 50.dp),
+                modifier = Modifier.size(48.dp),
             )
 
             Spacer(Modifier.width(16.dp))

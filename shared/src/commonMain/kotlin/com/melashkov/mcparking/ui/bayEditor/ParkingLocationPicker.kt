@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -88,7 +89,7 @@ internal fun ParkingLocationPicker(
         ) {
             MaplibreMap(
                 modifier = Modifier.fillMaxSize(),
-                baseStyle = ParkingMapStyle,
+                baseStyle = parkingMapStyle(),
                 cameraState = cameraState,
                 options = MapOptions(gestureOptions = GestureOptions.RotationLocked),
             )

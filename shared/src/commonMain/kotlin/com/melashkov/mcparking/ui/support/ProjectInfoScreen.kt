@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
@@ -83,6 +84,10 @@ internal fun ProjectInfoScreen(
                 if (SupportConfig.koFiUrl.isNotBlank()) {
                     Text(stringResource(Res.string.support_ko_fi_description))
                     Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF2B85B),
+                            contentColor = Color(0xFF302315),
+                        ),
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
                             linkFailed = runCatching { uriHandler.openUri(SupportConfig.koFiUrl) }.isFailure

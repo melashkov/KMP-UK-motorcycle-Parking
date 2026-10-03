@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
+import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +41,6 @@ import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.CameraState
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MaplibreMap
-import org.maplibre.compose.style.BaseStyle
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
@@ -106,9 +106,7 @@ private fun BaysMapContent(
 
     Box(Modifier.fillMaxSize()) {
         MaplibreMap(
-            baseStyle = BaseStyle.Uri(
-                "https://tiles.openfreemap.org/styles/liberty"
-            ),
+            baseStyle = parkingMapStyle(),
             cameraState = cameraState
         ) {
             ParkingBayMarkers(

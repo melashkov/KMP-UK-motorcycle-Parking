@@ -80,4 +80,10 @@
     <string name="release_map_body">Rebuilt with OpenStreetMap as Google’s mapping costs changed. The same community parking data is still here.</string>
     <string name="release_search_title">Location search is taking a break</string>
     <string name="release_search_body">You can still browse the map and find parking nearby. I hope to bring location search back in a future update.</string>
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_description">Choose a theme for the app and map.</string>
+    <string name="theme_system">Use device setting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_title">Settings</string>
 </resources>

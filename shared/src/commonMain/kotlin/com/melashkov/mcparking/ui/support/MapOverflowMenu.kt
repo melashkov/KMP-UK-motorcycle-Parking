@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.ui.support
 
+import com.melashkov.mcparking.ui.theme.SettingsScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocationAlt
@@ -27,6 +28,7 @@ internal fun MapOverflowMenu(
     var page by rememberSaveable {
         mutableStateOf(if (preferences.lastSeenRelease != CurrentReleaseId) "news" else "")
     }
+    var settingsVisible by rememberSaveable { mutableStateOf(false) }
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val dismiss = {
         if (page == "news") preferences.lastSeenRelease = CurrentReleaseId
@@ -44,6 +46,10 @@ internal fun MapOverflowMenu(
                 onClick = { menuExpanded = false; onAddBay() },
             )
             DropdownMenuItem(
+                text = { Text(stringResource(Res.string.settings_title)) },
+                onClick = { menuExpanded = false; settingsVisible = true },
+            )
+            DropdownMenuItem(
                 text = { Text(stringResource(Res.string.whats_new)) },
                 onClick = { menuExpanded = false; page = "news" },
             )
@@ -53,6 +59,8 @@ internal fun MapOverflowMenu(
             )
         }
     }
+
+    if (settingsVisible) SettingsScreen(onDismiss = { settingsVisible = false })
 
     if (page.isNotEmpty()) {
         ProjectInfoScreen(

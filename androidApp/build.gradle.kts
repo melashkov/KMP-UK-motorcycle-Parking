@@ -27,8 +27,8 @@ android {
         applicationId = "com.melashkov.mcparking"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 1678468729
+        versionName = "3.0"
     }
     flavorDimensions += "environment"
     productFlavors {
@@ -51,7 +51,7 @@ android {
         create("release") {
             storeFile = System.getenv("RELEASE_KEYSTORE")?.let(::file)
             storePassword = System.getenv("RELEASE_STORE_PASSWORD")
-            keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: "upload"
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
             keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
         }
     }

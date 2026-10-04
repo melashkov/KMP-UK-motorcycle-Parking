@@ -17,3 +17,6 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Android Studio release export (generated binary).
+/androidApp/prod/

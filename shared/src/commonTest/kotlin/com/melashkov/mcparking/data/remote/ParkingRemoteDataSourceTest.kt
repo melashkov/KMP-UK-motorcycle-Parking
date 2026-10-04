@@ -5,11 +5,13 @@ import com.melashkov.mcparking.data.remote.dto.ParkingReportRequestDto
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
@@ -18,11 +20,14 @@ import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class ParkingRemoteDataSourceTest {
     @Test
     fun boundsRequestSendsEveryCoordinateAndDecodesResponse() = runTest {
         val engine = MockEngine { request ->
+            assertNull(request.headers[HttpHeaders.Authorization])
             assertEquals(HttpMethod.Get, request.method)
             assertEquals("/api/bounds.php", request.url.encodedPath)
             assertEquals(TestBounds.north.toString(), request.url.parameters["north"])
@@ -59,6 +64,7 @@ class ParkingRemoteDataSourceTest {
             parentId = "42",
         )
         val engine = MockEngine { request ->
+            assertNull(request.headers[HttpHeaders.Authorization])
             assertEquals(HttpMethod.Post, request.method)
             assertEquals("/api/report.php", request.url.encodedPath)
             assertEquals(ContentType.Application.Json, request.body.contentType)
@@ -75,6 +81,29 @@ class ParkingRemoteDataSourceTest {
             val response = ParkingRemoteDataSource(client).submitParkingBay(expected)
 
             assertEquals("OK", response.status)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun rateLimitResponseDoesNotTriggerRegistrationOrImmediateRetries() = runTest {
+        var requests = 0
+        val client = testClient(MockEngine { request ->
+            requests++
+            assertEquals("/api/bounds.php", request.url.encodedPath)
+            assertNull(request.headers[HttpHeaders.Authorization])
+            respond(
+                content = """{"status":"ERROR","message":"Usage limit reached"}""",
+                status = HttpStatusCode.TooManyRequests,
+                headers = JsonHeaders,
+            )
+        })
+        try {
+            assertFailsWith<ClientRequestException> {
+                ParkingRemoteDataSource(client).getParkingBays(TestBounds)
+            }
+            assertEquals(1, requests)
         } finally {
             client.close()
         }

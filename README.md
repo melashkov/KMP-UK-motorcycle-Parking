@@ -122,6 +122,13 @@ Verify the API from the Mac before launching the app:
 curl "http://127.0.0.1:8080/api/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
 ```
 
+### API protection
+
+Parking requests go directly to the PHP API without client signing keys,
+installation registration or bearer tokens. Rate limits and geographic budgets
+are enforced by the server. See the API project's
+[server limits guide](../motorcycle_parking_api/docs/server-limits.md) for setup.
+
 ### Running tests
 
 Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:

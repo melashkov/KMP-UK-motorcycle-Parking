@@ -1,0 +1,9 @@
+A fresh look, with the same rider community behind it.
+
+- A consistent new design on Android and iOS.
+- A rebuilt map using OpenStreetMap data.
+- Clear parking types and bay details.
+- Add missing bays and suggest corrections.
+- Light and dark themes.
+
+Location search by street, city or postcode is temporarily unavailable. You can still browse the map, search the visible area and use your location to find nearby parking.

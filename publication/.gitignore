@@ -1,0 +1,7 @@
+# Generated review archive; regenerate when delivering.
+*.zip
+__pycache__/
+
+# Diagnostic startup/error captures and duplicate source.
+screenshots/raw/*/initial.png
+screenshots/raw/android/loaded.png

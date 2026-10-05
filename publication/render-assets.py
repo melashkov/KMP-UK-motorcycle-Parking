@@ -17,7 +17,7 @@ shots=[
  ('05-suggest-edit','Help keep parking\nup to date.','Suggest corrections or report a removed bay.'),
  ('06-dark-map','A map that\nfits your day.','Choose light, dark or your device setting.'),
  ('07-dark-details','The details.\nIn dark mode.','Parking information and actions, in either theme.'),
- ('08-dark-add-bay','Share a bay.\nIn either theme.','Add locations in light or dark mode.'),
+ ('08-behind-app','Built by a rider.\nImproved by you.','Meet the story and community behind the app.'),
 ]
 def wrap(draw,text,f,maxw):
  result=[]

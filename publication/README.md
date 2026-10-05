@@ -6,7 +6,7 @@ Prepared 4 October 2026; Android screenshot set updated 5 October 2026. Locale: 
 
 The store text, Google Play feature graphic, icon and **eight Android store screenshots** are prepared. The Android images were rendered from the ten captures supplied by the user on 5 October. **iPhone and iPad screenshot sets remain incomplete.** Nothing has been uploaded or submitted to either store. App release code has not been edited by the publication work. Security work is committed separately; the publication branch does not include the security implementation.
 
-Download `google-play-screenshots.zip` for the eight upload images in order. `android-screenshot-preview.jpg` is a contact sheet for review only; do not upload it as a phone screenshot. The first six slides cover distinct features; the final two show additional dark-mode screens.
+Download `google-play-screenshots.zip` for the eight upload images in order. `android-screenshot-preview.jpg` is a contact sheet for review only; do not upload it as a phone screenshot. The first six slides cover distinct features; slide seven shows dark bay details and slide eight introduces the story behind the app.
 
 ## Copy and branding
 
@@ -33,7 +33,7 @@ The design uses a navy background, clear white benefit headlines and real app ca
 | 5 | Help keep parking up to date. | Light suggested-edit form |
 | 6 | A map that fits your day. | Dark map |
 | 7 | The details. In dark mode. | Dark bay details and actions |
-| 8 | Share a bay. In either theme. | Dark add-bay form |
+| 8 | Built by a rider. Improved by you. | Behind the app in dark mode |
 
 | Export | Size | Current status |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ The design uses a navy background, clear white benefit headlines and real app ca
 
 The full app captures are scaled proportionally into the navy store layout. Their UI, theme, text, data, attribution and camera cutout are retained. The supplied originals are 1080 × 2400 RGBA images; upload exports are 1080 × 1920 RGB PNGs without transparency.
 
-`render-assets.py` contains the ordered screen names and captions and reads the matching captures under `screenshots/raw/<device>/`. `asset-manifest.json` lists the generated store exports. All ten supplied originals are retained: the dark suggested-edit and Behind the app captures are alternatives, not included in the eight-slide upload ZIP. Initial diagnostic/error captures are not upload assets.
+`render-assets.py` contains the ordered screen names and captions and reads the matching captures under `screenshots/raw/<device>/`. `asset-manifest.json` lists the generated store exports. All ten supplied originals are retained: the dark suggested-edit and dark add-bay captures are alternatives, not included in the eight-slide upload ZIP. Initial diagnostic/error captures are not upload assets.
 
 ## Capture provenance
 

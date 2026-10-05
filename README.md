@@ -102,26 +102,6 @@ alongside the two development URLs. Each platform implementation selects the app
 environment; `NetworkModule` creates the provider as an application singleton, while the HTTP
 client only depends on `ApiUrlProvider.baseUrl`.
 
-### Bootstrap the local API
-
-Set up the separate `motorcycle_parking_api` project using its README, including its PHP config
-and MySQL database. Start its development server on the Mac:
-
-```bash
-cd ../motorcycle_parking_api
-php -S 127.0.0.1:8080 -t html
-```
-
-The Android emulator reaches that server through `10.0.2.2`; it does not need port forwarding.
-The Android `devDebug` variant is not configured for physical devices. Use `prodDebug` on a
-physical Android device.
-
-Verify the API from the Mac before launching the app:
-
-```bash
-curl "http://127.0.0.1:8080/api/bounds.php?north=51.52&south=51.50&east=-0.08&west=-0.11&limit=1"
-```
-
 ### Running tests
 
 Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:

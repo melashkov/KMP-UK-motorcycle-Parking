@@ -2,14 +2,23 @@
 Run with the bundled Python runtime, or Python with Pillow installed.
 """
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 import json
 ROOT=Path(__file__).resolve().parent
 REPO=ROOT.parent
 FONT=Path('/System/Library/Fonts/Supplemental')
 def font(size,bold=False): return ImageFont.truetype(str(FONT/('Arial Bold.ttf' if bold else 'Arial.ttf')),size)
 NAVY='#122B40'; BLUE='#247ED4'; CREAM='#F2F4F5'; MUTED='#BDD0DE'
-shots=[('01-map','Find a bay.\nPark your bike.','Explore motorcycle parking across the UK.'),('02-details','Know the bay\nbefore you go.','Check the parking type and available notes.'),('03-add-bay','Your local knowledge.\nEveryone’s next bay.','Add missing bays for the community to review.'),('04-dark-map','A map that\nfits your day.','Choose light, dark or your device setting.')]
+shots=[
+ ('01-map','Find a bay.\nPark your bike.','Explore motorcycle parking across the UK.'),
+ ('02-details','Check the bay.\nPlan your stop.','See the parking type, then navigate or share.'),
+ ('03-search-area','Explore somewhere\nnew.','Move the map, then search this area.'),
+ ('04-add-bay','Found a bay?\nPut it on the map.','Send missing parking locations for review.'),
+ ('05-suggest-edit','Help keep parking\nup to date.','Suggest corrections or report a removed bay.'),
+ ('06-dark-map','A map that\nfits your day.','Choose light, dark or your device setting.'),
+ ('07-dark-details','The details.\nIn dark mode.','Parking information and actions, in either theme.'),
+ ('08-dark-add-bay','Share a bay.\nIn either theme.','Add locations in light or dark mode.'),
+]
 def wrap(draw,text,f,maxw):
  result=[]
  for para in text.split('\n'):

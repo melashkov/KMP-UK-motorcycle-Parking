@@ -1,7 +1,56 @@
 [
   {
-    "path": "screenshots/android/04-dark-map.png",
-    "source": "screenshots/raw/android/04-dark-map.png",
+    "path": "screenshots/android/01-map.png",
+    "source": "screenshots/raw/android/01-map.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/02-details.png",
+    "source": "screenshots/raw/android/02-details.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/03-search-area.png",
+    "source": "screenshots/raw/android/03-search-area.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/04-add-bay.png",
+    "source": "screenshots/raw/android/04-add-bay.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/05-suggest-edit.png",
+    "source": "screenshots/raw/android/05-suggest-edit.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/06-dark-map.png",
+    "source": "screenshots/raw/android/06-dark-map.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/07-dark-details.png",
+    "source": "screenshots/raw/android/07-dark-details.png",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGB"
+  },
+  {
+    "path": "screenshots/android/08-dark-add-bay.png",
+    "source": "screenshots/raw/android/08-dark-add-bay.png",
     "width": 1080,
     "height": 1920,
     "mode": "RGB"

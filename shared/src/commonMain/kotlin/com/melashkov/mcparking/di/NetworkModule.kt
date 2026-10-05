@@ -25,6 +25,11 @@ class NetworkModule {
         HttpClient {
             expectSuccess = true
 
+            install(ApiClientMetadataPlugin) {
+                metadata = platformApiClientMetadata(scope)
+                baseUrl = apiUrlProvider.baseUrl
+            }
+
             install(ContentNegotiation) {
                 val json = Json {
                     ignoreUnknownKeys = true

@@ -10,7 +10,7 @@ UK Motorcycle Parking
 
 ### short-description
 
-Find motorcycle parking bays across the UK. Built for riders, with no ads.
+Find motorcycle parking bays across the UK. Built for riders.
 
 ### full-description
 

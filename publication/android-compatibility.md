@@ -27,3 +27,14 @@ Verified on the Android API 23 emulator on 5 October 2026:
 The emulator's `eglCodecCommon glUtilsParamSize` warning did not prevent map
 rendering. Rebuild the signed production bundle before publishing; earlier
 API 23 bundles do not contain this fix.
+
+## Returning from Street View on Android 6
+
+On the API 23 emulator, bringing the existing app task back from the Street View
+URL in the browser left the native map black while its controls remained visible.
+Recreating the Android 6 activity on `onRestart` restores the rendering window.
+Android retains ViewModels and restores saved Compose state, including the camera.
+Other Android versions keep the existing lifecycle behavior.
+
+Verified the map and parking markers render after repeated browser return cycles.
+This workaround can cause a brief redraw after returning from another activity.

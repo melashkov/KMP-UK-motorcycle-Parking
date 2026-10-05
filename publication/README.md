@@ -10,11 +10,11 @@ Download `google-play-screenshots.zip` for the eight upload images in order. `an
 
 ## Copy and branding
 
-Use `en-GB/store-copy.md` to review all fields together. Individual plain-text fields are in `en-GB/android/` and `en-GB/ios/` for copying into the consoles. Both stores use the name **UK Motorcycle Parking**, the same full description and the same release notes.
+Use [en-GB/store-copy.md](en-GB/store-copy.md) as the single source for all listing text. It contains separate Android and iOS sections with fields ready to copy into each store console. Both stores use the name **UK Motorcycle Parking**, the same full description and the same release notes.
 
 The copy reflects the current source: map browsing, visible-area search, current location, parking categories, details, external directions, sharing, Street View links, reviewed additions/corrections, and light/dark appearance. Street/city/postcode search is explicitly described as temporarily unavailable. Offline operation, real-time availability, automatic routing, universal coverage, and unverified location counts are not advertised.
 
-Google Play: title 21/30; short description 74/80; full description 1409/4000; release notes 424/500.
+Google Play: title 21/30; short description 61/80; full description 1409/4000; release notes 424/500.
 Apple: name 21/30; subtitle 27/30; promotional text 141/170; description 1409/4000; keywords 80/100; release notes 424/4000.
 
 `google-play-feature-graphic.png`: 1024 × 500, RGB PNG.

@@ -5,3 +5,6 @@ __pycache__/
 # Diagnostic startup/error captures and duplicate source.
 screenshots/raw/*/initial.png
 screenshots/raw/android/loaded.png
+
+# Local release verification bundles.
+*.aab

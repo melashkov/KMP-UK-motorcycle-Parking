@@ -30,7 +30,7 @@ class NetworkModule {
         scope: Scope,
         debugLogger: ApiDebugLogger,
     ): HttpClient =
-        HttpClient {
+        platformHttpClient(scope, apiUrlProvider).config {
             expectSuccess = true
 
             install(ApiClientMetadataPlugin) {
@@ -67,3 +67,5 @@ class NetworkModule {
             }
         }
 }
+
+internal expect fun platformHttpClient(scope: Scope, apiUrlProvider: ApiUrlProvider): HttpClient

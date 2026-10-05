@@ -21,8 +21,9 @@ class NetworkModule {
     @Singleton
     fun provideHttpClient(
         apiUrlProvider: ApiUrlProvider,
+        scope: Scope,
     ): HttpClient =
-        HttpClient {
+        platformHttpClient(scope, apiUrlProvider).config {
             expectSuccess = true
 
             install(ContentNegotiation) {
@@ -44,3 +45,5 @@ class NetworkModule {
             }
         }
 }
+
+internal expect fun platformHttpClient(scope: Scope, apiUrlProvider: ApiUrlProvider): HttpClient

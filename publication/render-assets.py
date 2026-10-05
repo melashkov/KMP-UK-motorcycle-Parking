@@ -3,7 +3,6 @@ Run with the bundled Python runtime, or Python with Pillow installed.
 """
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-import json
 ROOT=Path(__file__).resolve().parent
 REPO=ROOT.parent
 FONT=Path('/System/Library/Fonts/Supplemental')
@@ -69,14 +68,14 @@ def feature():
  Image.open(REPO/'design-assets/app-icon-source.png').convert('RGB').resize((512,512),Image.Resampling.LANCZOS).save(ROOT/'google-play-icon.png')
 
 def main():
- feature(); outputs=[]
+ feature(); count=0
  for device,size in [('android',(1080,1920)),('iphone',(1320,2868)),('ipad',(2064,2752))]:
   for n,(slug,title,sub) in enumerate(shots,1):
    source=ROOT/'screenshots/raw'/device/(slug+'.png')
    if not source.exists(): continue
-   out=ROOT/'screenshots'/device/(slug+'.png'); out.parent.mkdir(parents=True,exist_ok=True)
+   folder=ROOT/'google-play-screenshots' if device=='android' else ROOT/'screenshots'/device
+   out=folder/(slug+'.png'); out.parent.mkdir(parents=True,exist_ok=True)
    compose(source,size,title,sub,n).save(out)
-   outputs.append({'path':str(out.relative_to(ROOT)),'source':str(source.relative_to(ROOT)),'width':size[0],'height':size[1],'mode':'RGB'})
- (ROOT/'asset-manifest.json').write_text(json.dumps(outputs,indent=2)+'\n')
- print(f'Created feature graphic, icon and {len(outputs)} store screenshots.')
+   count+=1
+ print(f'Created feature graphic, icon and {count} store screenshots.')
 if __name__=='__main__': main()

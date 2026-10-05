@@ -6,7 +6,7 @@
 
 <p align="center">
   Find dedicated motorcycle parking across the UK.<br>
-  <strong>Free. Ad-free. Built for riders.</strong>
+  <strong>Built for riders. Shaped by the community.</strong>
 </p>
 
 <p align="center">
@@ -34,9 +34,9 @@ community by submitting missing locations.
 
 - Explore nearby motorcycle parking on an interactive map.
 - Distinguish free, paid, permit-required and unclassified bays at a glance.
-- Search for a destination and refresh results for the visible area.
+- Move the map and refresh parking results for the visible area.
 - Submit new parking bays for review.
-- Use the same free, ad-free service on Android and iOS.
+- Available on Android and iOS.
 
 ## Development
 

@@ -19,9 +19,13 @@ class NetworkModule {
         platformApiUrlProvider(scope)
 
     @Singleton
+    fun provideApiDebugLogger(scope: Scope): ApiDebugLogger = platformApiDebugLogger(scope)
+
+    @Singleton
     fun provideHttpClient(
         apiUrlProvider: ApiUrlProvider,
-        scope: Scope
+        scope: Scope,
+        debugLogger: ApiDebugLogger,
     ): HttpClient =
         HttpClient {
             expectSuccess = true
@@ -29,6 +33,11 @@ class NetworkModule {
             install(ApiClientMetadataPlugin) {
                 metadata = platformApiClientMetadata(scope)
                 baseUrl = apiUrlProvider.baseUrl
+            }
+
+            if (debugLogger.enabled) {
+                debugLogger.log("API base URL: ${apiUrlProvider.baseUrl}")
+                install(ApiDebugLoggingPlugin) { logger = debugLogger }
             }
 
             install(ContentNegotiation) {

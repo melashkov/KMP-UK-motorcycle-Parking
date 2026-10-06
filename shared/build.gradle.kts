@@ -95,6 +95,7 @@ kotlin {
             //implementation(libs.koin.compose.navigation3)
             //Ktor
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
         }

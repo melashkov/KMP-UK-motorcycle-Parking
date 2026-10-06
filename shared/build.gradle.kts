@@ -27,6 +27,8 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.swiftPackageConfig {
+            // Keep the Swift package deployment target aligned with the Xcode app.
+            minIos = "18.2"
             dependency {
                 remotePackageVersion(
                     url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),

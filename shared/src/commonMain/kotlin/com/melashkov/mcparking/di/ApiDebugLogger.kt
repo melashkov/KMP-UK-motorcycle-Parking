@@ -8,7 +8,7 @@ class ApiDebugLogger(
     private val write: (String) -> Unit = {},
 ) {
     fun log(message: String) {
-        if (enabled) write(redact(message))
+        if (enabled) write(message)
     }
 
     suspend fun <T> trace(operation: String, block: suspend () -> T): T = try {
@@ -30,10 +30,6 @@ class ApiDebugLogger(
         throw error
     }
 
-    private fun redact(message: String): String = message
-        .replace(Regex("([?&][A-Za-z0-9_.%-]+=)[^\\s&]+"), "$1<redacted>")
-        .replace(Regex("(?i)(Bearer\\s+)[^\\s,;]+"), "$1<redacted>")
-        .replace(Regex("(?i)((?:authorization|cookie|set-cookie)\\s*[:=]\\s*)[^\\r\\n]+"), "$1<redacted>")
 }
 
 internal expect fun platformApiDebugLogger(scope: Scope): ApiDebugLogger

@@ -32,7 +32,7 @@ class ApiDebugLoggerTest {
     }
 
     @Test
-    fun failedConnectionsKeepTheirCauseAndIdentifierButRedactTokens() = runTest {
+    fun failedConnectionsKeepTheirCauseAndOriginalDetails() = runTest {
         val messages = mutableListOf<String>()
         val logger = ApiDebugLogger(true, messages::add)
         assertFailsWith<IllegalStateException> {
@@ -43,10 +43,11 @@ class ApiDebugLoggerTest {
         val text = messages.joinToString()
         assertTrue(text.contains("Parking lookup failed"))
         assertTrue(text.contains("IllegalArgumentException"))
-        assertTrue(!text.contains("secret-token") && text.contains("993dd131"))
+        assertTrue(text.contains("Bearer secret-token") && text.contains("993dd131"))
         assertEquals(1, messages.size)
-        logger.log("Request failed: https://melashkov.com/api/bounds.php?north=51.512&south=51.50")
-        assertTrue(!messages.last().contains("51.512") && !messages.last().contains("51.50"))
+        val request = "Request failed: https://melashkov.com/api/bounds.php?north=51.512&south=51.50&east=-0.10&west=-0.12"
+        logger.log(request)
+        assertEquals(request, messages.last())
     }
 
     @Test
@@ -61,7 +62,6 @@ class ApiDebugLoggerTest {
                     override fun log(message: String) = logger.log(message)
                 }
                 level = LogLevel.HEADERS
-                sanitizeHeader { it.equals("Authorization", ignoreCase = true) }
             }
             install(ContentNegotiation) { json() }
             defaultRequest { url("https://melashkov.com/api/") }
@@ -74,12 +74,15 @@ class ApiDebugLoggerTest {
             assertTrue(text.contains("Content-Type: application/json", ignoreCase = true))
             assertTrue(text.contains("Parking lookup failed"))
             assertTrue(text.contains("X-Client-Metadata-Status: stored", ignoreCase = true))
-            assertTrue(!text.contains("north=${TestBounds.north}"))
+            assertTrue(text.contains("north=${TestBounds.north}"))
+            assertTrue(text.contains("south=${TestBounds.south}"))
+            assertTrue(text.contains("east=${TestBounds.east}"))
+            assertTrue(text.contains("west=${TestBounds.west}"))
         } finally { client.close() }
     }
 
     @Test
-    fun stockLoggingIncludesMetadataAndOmitsBodiesAndCredentials() = runTest {
+    fun stockLoggingIncludesOriginalHeadersAndOmitsBodies() = runTest {
         val messages = mutableListOf<String>()
         val logger = ApiDebugLogger(true, messages::add)
         val id = "993dd131-4ee1-4275-a431-a5fe2a19f450"
@@ -93,7 +96,6 @@ class ApiDebugLoggerTest {
                     override fun log(message: String) = logger.log(message)
                 }
                 level = LogLevel.HEADERS
-                sanitizeHeader { it.equals("Authorization", ignoreCase = true) }
             }
             defaultRequest { url("https://melashkov.com/api/") }
         }
@@ -104,7 +106,8 @@ class ApiDebugLoggerTest {
             assertTrue(request.contains("X-App-Version: 3.0-dev", ignoreCase = true))
             assertTrue(request.contains("X-Android-API-Level: 37", ignoreCase = true))
             assertTrue(request.contains('\n'))
-            assertTrue(messages.none { it.contains("secret-token") || it.contains("response-body-sentinel") })
+            assertTrue(request.contains("Authorization: Bearer secret-token", ignoreCase = true))
+            assertTrue(messages.none { it.contains("response-body-sentinel") })
             assertEquals(2, messages.size)
         } finally { client.close() }
     }

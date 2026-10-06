@@ -7,7 +7,6 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.http.HttpHeaders
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -46,11 +45,6 @@ class NetworkModule {
                         override fun log(message: String) = debugLogger.log(message)
                     }
                     level = LogLevel.HEADERS
-                    sanitizeHeader { header ->
-                        header.equals(HttpHeaders.Authorization, ignoreCase = true) ||
-                            header.equals(HttpHeaders.Cookie, ignoreCase = true) ||
-                            header.equals(HttpHeaders.SetCookie, ignoreCase = true)
-                    }
                 }
             }
 

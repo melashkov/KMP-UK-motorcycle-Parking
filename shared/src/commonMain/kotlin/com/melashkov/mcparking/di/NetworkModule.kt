@@ -21,6 +21,7 @@ class NetworkModule {
     @Singleton
     fun provideHttpClient(
         apiUrlProvider: ApiUrlProvider,
+        scope: Scope
     ): HttpClient =
         HttpClient {
             expectSuccess = true

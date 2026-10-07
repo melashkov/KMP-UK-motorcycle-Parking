@@ -20,14 +20,13 @@ class ParkingRemoteDataSource(
 ) {
     suspend fun getParkingBays(
         bounds: GeoBounds,
-    ): ParkingResponseDto {
-        return client.get("bounds.php") {
+    ): ParkingResponseDto =
+        client.get("bounds.php") {
             parameter("north", bounds.north)
             parameter("south", bounds.south)
             parameter("east", bounds.east)
             parameter("west", bounds.west)
         }.body()
-    }
 
     suspend fun submitParkingBay(
         report: ParkingReportRequestDto,

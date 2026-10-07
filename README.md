@@ -25,9 +25,15 @@ community by submitting missing locations.
 ## Preview
 
 <p align="center">
-  <img src="./pics/map.png" alt="Motorcycle parking bays on the map" width="280">
-  &nbsp;&nbsp;&nbsp;
-  <img src="./pics/add-parking-bay.png" alt="Add a new motorcycle parking bay" width="280">
+  <img src="./publication/google-play-screenshots/01-map.png" alt="Find motorcycle parking bays on the map" width="240">
+  <img src="./publication/google-play-screenshots/02-details.png" alt="View parking bay details and navigation options" width="240">
+  <img src="./publication/google-play-screenshots/03-search-area.png" alt="Search for motorcycle parking in the visible map area" width="240">
+</p>
+
+<p align="center">
+  <img src="./publication/google-play-screenshots/04-add-bay.png" alt="Add a missing motorcycle parking bay" width="240">
+  <img src="./publication/google-play-screenshots/05-suggest-edit.png" alt="Suggest an edit to parking bay information" width="240">
+  <img src="./publication/google-play-screenshots/06-dark-map.png" alt="Explore motorcycle parking with the dark map theme" width="240">
 </p>
 
 ## Features

@@ -27,7 +27,9 @@ android {
         applicationId = "com.melashkov.mcparking"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1678468730
+        versionCode = providers.gradleProperty("releaseVersionCode")
+            .map(String::toInt)
+            .getOrElse(1678468730)
         versionName = "3.0"
     }
     flavorDimensions += "environment"

@@ -1,0 +1,6 @@
+# Local generated files.
+*.zip
+__pycache__/
+
+# Local release verification bundles.
+*.aab

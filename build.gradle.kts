@@ -8,3 +8,15 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.kotlinSerialization) apply false
 }
+
+// Apply to the app's runtime resolution as well as the shared library's compile classpath.
+subprojects {
+    val mapLibreAndroidVersion = providers.gradleProperty("mapLibreAndroidVersion").get()
+    configurations.configureEach {
+        resolutionStrategy.dependencySubstitution {
+            substitute(module("org.maplibre.gl:android-sdk"))
+                .using(module("org.maplibre.gl:android-sdk-opengl:$mapLibreAndroidVersion"))
+                .because("Runtime GeoJSON layers do not render correctly with Vulkan on target Android devices")
+        }
+    }
+}

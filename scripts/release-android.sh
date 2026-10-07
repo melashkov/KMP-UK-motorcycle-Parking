@@ -69,7 +69,7 @@ if [[ ! -x "./gradlew" ]]; then
     exit 1
 fi
 
-for cmd in curl jq gcloud; do
+for cmd in curl jq gcloud python3; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         echo "ERROR: '$cmd' is required but not installed."
         exit 1
@@ -231,6 +231,10 @@ echo "Built:"
 echo "  $AAB_PATH"
 echo
 
+# Prepare and verify symbols before uploading any release artifacts.
+echo "Preparing native debug symbols..."
+SYMBOLS_PATH="$(python3 "$SCRIPT_DIR/prepare-android-symbols.py" "$AAB_PATH")"
+
 # -----------------------------------------------------------------------------
 # Upload AAB
 # -----------------------------------------------------------------------------
@@ -256,6 +260,19 @@ if [[ -z "$VERSION_CODE" ]]; then
 fi
 
 echo "Uploaded versionCode: $VERSION_CODE"
+
+# -----------------------------------------------------------------------------
+# Upload symbols for this exact bundle version
+# -----------------------------------------------------------------------------
+
+echo "Uploading native debug symbols for versionCode $VERSION_CODE..."
+play_request \
+    -X POST \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/octet-stream" \
+    --data-binary "@$SYMBOLS_PATH" \
+    "$UPLOAD_BASE/applications/$PACKAGE_NAME/edits/$EDIT_ID/apks/$VERSION_CODE/deobfuscationFiles/nativeCode?uploadType=media" \
+    >/dev/null
 
 # -----------------------------------------------------------------------------
 # Assign bundle to track
@@ -307,4 +324,5 @@ echo "Package:      $PACKAGE_NAME"
 echo "Version code: $VERSION_CODE"
 echo "Track:        $TRACK"
 echo "Bundle:       $AAB_PATH"
+echo "Symbols:      $SYMBOLS_PATH"
 echo "========================================"

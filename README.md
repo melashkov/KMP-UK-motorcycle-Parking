@@ -109,4 +109,31 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Android tests: `./gradlew :shared:testAndroidHostTest`
 - iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
 
+### Android release symbols
+
+`scripts/release-android.sh` automatically prepares and uploads native debug symbols to Google Play
+for the uploaded bundle's version code, before assigning it to a track and committing the release.
+It requires Python 3 in addition to the existing `curl`, `jq`, and `gcloud` tools.
+
+MapLibre ships stripped native libraries, so the script downloads its matching OpenGL **release**
+symbol archive from the official MapLibre GitHub release. The archive is cached under
+`build/native-symbols/`, checked against its SHA-256 checksum, and each library's ELF build ID is
+matched against the AAB. Missing or mismatched symbols stop the release. Gradle also includes any
+available full debug symbols from other dependencies; symbols already removed by their publishers
+cannot be recovered (including the current AndroidX graphics path library).
+
+When upgrading MapLibre, update both `mapLibreAndroidVersion` and
+`mapLibreAndroidSymbolsSha256` in `gradle.properties`. Use the checksum for
+`debug-symbols-maplibre-android-opengl-release-android-v<VERSION>.tar.gz` from the corresponding
+[MapLibre release](https://github.com/maplibre/maplibre-native/releases).
+
+To prepare and verify symbols locally without publishing:
+
+```sh
+python3 scripts/prepare-android-symbols.py androidApp/build/outputs/bundle/prodRelease/androidApp-prod-release.aab
+```
+
+The resulting `native-debug-symbols.zip` is saved beside the AAB. An already downloaded archive can
+be supplied with `--archive /path/to/archive.tar.gz`; the same checksum and build ID checks apply.
+
 Built with [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).

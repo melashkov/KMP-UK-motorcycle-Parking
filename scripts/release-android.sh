@@ -168,7 +168,7 @@ TRACKS_RESPONSE="$(play_request -H "Authorization: Bearer $TOKEN" "$API_BASE/app
 HIGHEST_VERSION_CODE="$(
     printf '%s\n' "$BUNDLES_RESPONSE" "$APKS_RESPONSE" "$TRACKS_RESPONSE" |
         jq -ers '
-            [1678468727,
+            [1678468730,
              (.[0].bundles[]?.versionCode | tonumber),
              (.[1].apks[]?.versionCode | tonumber),
              (.[2].tracks[]?.releases[]?.versionCodes[]? | tonumber)]

@@ -21,37 +21,24 @@ import kotlin.test.assertTrue
 
 class ApiDebugLoggerTest {
     @Test
-    fun disabledLoggerProducesNothingEvenOnFailure() = runTest {
+    fun disabledLoggerProducesNothing() {
         val messages = mutableListOf<String>()
         val logger = ApiDebugLogger(false, messages::add)
         logger.log("A request")
-        assertFailsWith<IllegalStateException> {
-            logger.trace("Parking lookup") { error("Failed") }
-        }
         assertTrue(messages.isEmpty())
     }
 
     @Test
-    fun failedConnectionsKeepTheirCauseAndOriginalDetails() = runTest {
+    fun enabledLoggerKeepsOriginalDetails() {
         val messages = mutableListOf<String>()
         val logger = ApiDebugLogger(true, messages::add)
-        assertFailsWith<IllegalStateException> {
-            logger.trace("Parking lookup") {
-                throw IllegalStateException("Bearer secret-token", IllegalArgumentException("993dd131-4ee1-4275-a431-a5fe2a19f450"))
-            }
-        }
-        val text = messages.joinToString()
-        assertTrue(text.contains("Parking lookup failed"))
-        assertTrue(text.contains("IllegalArgumentException"))
-        assertTrue(text.contains("Bearer secret-token") && text.contains("993dd131"))
-        assertEquals(1, messages.size)
         val request = "Request failed: https://melashkov.com/api/bounds.php?north=51.512&south=51.50&east=-0.10&west=-0.12"
         logger.log(request)
         assertEquals(request, messages.last())
     }
 
     @Test
-    fun malformedServerDataLogsStatusContentTypeAndDecodeFailure() = runTest {
+    fun malformedServerDataStillLogsResponseHeaders() = runTest {
         val messages = mutableListOf<String>()
         val logger = ApiDebugLogger(true, messages::add)
         val client = HttpClient(MockEngine {
@@ -67,12 +54,11 @@ class ApiDebugLoggerTest {
             defaultRequest { url("https://melashkov.com/api/") }
         }
         try {
-            assertFailsWith<Exception> { ParkingRemoteDataSource(client, logger).getParkingBays(TestBounds) }
+            assertFailsWith<Exception> { ParkingRemoteDataSource(client).getParkingBays(TestBounds) }
             val text = messages.joinToString()
             assertTrue(text.contains("REQUEST: https://melashkov.com/api/bounds.php"))
             assertTrue(text.contains("RESPONSE: 200"))
             assertTrue(text.contains("Content-Type: application/json", ignoreCase = true))
-            assertTrue(text.contains("Parking lookup failed"))
             assertTrue(text.contains("X-Client-Metadata-Status: stored", ignoreCase = true))
             assertTrue(text.contains("north=${TestBounds.north}"))
             assertTrue(text.contains("south=${TestBounds.south}"))

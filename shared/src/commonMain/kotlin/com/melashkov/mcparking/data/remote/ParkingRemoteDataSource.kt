@@ -26,7 +26,7 @@ class ParkingRemoteDataSource(
             parameter("south", bounds.south)
             parameter("east", bounds.east)
             parameter("west", bounds.west)
-        }.body<ParkingResponseDto>()
+        }.body()
 
     suspend fun submitParkingBay(
         report: ParkingReportRequestDto,
@@ -34,5 +34,5 @@ class ParkingRemoteDataSource(
         client.post("report.php") {
             contentType(ContentType.Application.Json)
             setBody(report)
-        }.body<ParkingReportResponseDto>()
+        }.body()
 }

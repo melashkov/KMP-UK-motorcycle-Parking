@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./design-assets/motorcycle-parking-pin-blue.png" alt="UK Motorcycle Parking pin" width="120">
+  <img src="./design-assets/app-icon-source.png" alt="UK Motorcycle Parking app icon" width="120">
 </p>
 
 <h1 align="center">UK Motorcycle Parking</h1>
@@ -135,5 +135,19 @@ python3 scripts/prepare-android-symbols.py androidApp/build/outputs/bundle/prodR
 
 The resulting `native-debug-symbols.zip` is saved beside the AAB. An already downloaded archive can
 be supplied with `--archive /path/to/archive.tar.gz`; the same checksum and build ID checks apply.
+
+### Release size optimization
+
+Android release builds enable R8 code optimization and resource shrinking. Preview tooling is
+available in debug builds; the app's preview annotations are compile-only. R8 is pinned in
+`settings.gradle.kts` to a version that supports the project's Kotlin 2.4 metadata.
+
+The shared UI uses the Material Icons library; R8 removes unused icon classes from Android release
+builds. Unused shared drawable assets have been removed.
+
+Release builds generate `androidApp/build/outputs/mapping/prodRelease/mapping.txt`; Gradle also
+embeds this mapping in the AAB for Google Play to deobfuscate crashes. Keep the mapping for the
+exact build when analyzing crashes locally. Test map loading, parking details, the parking report
+form, and settings on an optimized release build when changing dependencies or keep rules.
 
 Built with [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).

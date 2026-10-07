@@ -15,7 +15,8 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
 
-    implementation(libs.compose.uiToolingPreview)
+    implementation(libs.compose.ui)
+    compileOnly(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
 }
 
@@ -62,7 +63,8 @@ android {
             applicationIdSuffix = ".dev"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             ndk.debugSymbolLevel = "FULL"
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(

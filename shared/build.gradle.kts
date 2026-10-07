@@ -60,8 +60,6 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.compose.uiTooling)
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
@@ -102,10 +100,6 @@ kotlin {
             implementation(libs.ktor.client.mock)
         }
     }
-}
-
-dependencies {
-    androidRuntimeClasspath(libs.compose.uiTooling)
 }
 
 val copyMapLibreFrameworkForIosSimulatorTests = tasks.register<Sync>(

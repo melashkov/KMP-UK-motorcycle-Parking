@@ -287,14 +287,7 @@ echo "Uploaded versionCode: $VERSION_CODE"
 # Upload symbols for this exact bundle version
 # -----------------------------------------------------------------------------
 
-echo "Uploading R8 deobfuscation mapping for versionCode $VERSION_CODE..."
-play_request \
-    -X POST \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/octet-stream" \
-    --data-binary "@$MAPPING_PATH" \
-    "$UPLOAD_BASE/applications/$PACKAGE_NAME/edits/$EDIT_ID/apks/$VERSION_CODE/deobfuscationFiles/proguard?uploadType=media" \
-    >/dev/null
+# Play imports the verified R8 mapping from the AAB. Uploading it again is rejected.
 
 echo "Uploading native debug symbols for versionCode $VERSION_CODE..."
 play_request \

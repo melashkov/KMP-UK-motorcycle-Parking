@@ -115,6 +115,16 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 - Android tests: `./gradlew :shared:testAndroidHostTest`
 - iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
 
+### Continuous integration
+
+The `Tests and builds` GitHub Actions workflow runs on pushes to `main` and pull requests
+targeting `main`. It can also be started manually from the repository's Actions tab once the
+workflow is on the default branch.
+
+It runs shared tests on Android and iOS, builds both Android debug variants, and builds the
+iOS simulator app on an Apple Silicon macOS runner. Test reports, debug APKs, and the simulator
+app archive are available as workflow artifacts. No signing secrets are required.
+
 ### Android release symbols
 
 `scripts/release-android.sh` automatically prepares and uploads native debug symbols to Google Play

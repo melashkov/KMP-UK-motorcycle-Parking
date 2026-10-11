@@ -14,6 +14,7 @@ import com.melashkov.mcparking.ui.bayEditor.navigation.EditBayRoute
 import com.melashkov.mcparking.ui.navigation.AppCommand
 import com.melashkov.mcparking.ui.navigation.AppNavigationSink
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -63,6 +65,7 @@ class BaysMapViewModelTest {
         assertEquals(listOf(viewport.bounds), repository.searchedBounds)
         assertFalse(viewModel.uiState.value.isLoading)
         assertFalse(viewModel.uiState.value.showSearchThisArea)
+        assertFalse(viewModel.uiState.value.showEmptySearch)
     }
 
     @Test
@@ -102,11 +105,106 @@ class BaysMapViewModelTest {
 
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
         viewModel.uiState.value.eventSink(MapUiEvent.ViewportChanged(moved))
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.showSearchThisArea)
         advanceUntilIdle()
 
         assertEquals(listOf(initial.bounds), repository.searchedBounds)
         assertEquals(moved, viewModel.uiState.value.currentViewport)
         assertTrue(viewModel.uiState.value.showSearchThisArea)
+        assertFalse(viewModel.uiState.value.showEmptySearch)
+    }
+
+    @Test
+    fun emptySearchShowsDismissibleMessage() = runTest(dispatcher) {
+        val viewModel = createViewModel(FakeParkingRepository())
+
+        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.showEmptySearch)
+        assertTrue(viewModel.uiState.value.parkingBays.isEmpty())
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertNull(viewModel.uiState.value.error)
+        viewModel.uiState.value.eventSink(MapUiEvent.DismissSearchMessage)
+        assertFalse(viewModel.uiState.value.showEmptySearch)
+    }
+
+    @Test
+    fun movingMapAndStartingSearchClearEmptyMessage() = runTest(dispatcher) {
+        val viewModel = createViewModel(FakeParkingRepository())
+        val initial = testViewport()
+        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showEmptySearch)
+
+        viewModel.uiState.value.eventSink(
+            MapUiEvent.ViewportChanged(testViewport(center = GeoCoordinate(51.51, -0.12))),
+        )
+        assertFalse(viewModel.uiState.value.showEmptySearch)
+
+        viewModel.uiState.value.eventSink(MapUiEvent.SearchCurrentArea)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.showEmptySearch)
+
+        viewModel.uiState.value.eventSink(MapUiEvent.SearchCurrentArea)
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.showEmptySearch)
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun cancelStopsRequestAndUsesCurrentViewportForSearchVisibility() = runTest(dispatcher) {
+        val initial = testViewport()
+        val moved = testViewport(center = GeoCoordinate(51.51, -0.12))
+        for ((viewport, shouldShowSearch) in listOf(
+            moved to true,
+            moved.copy(zoom = 12.99) to false,
+            initial to false,
+        )) {
+            val bays = listOf(testBay())
+            val repository = FakeParkingRepository(searchResult = DataResult.Success(bays))
+            val viewModel = createViewModel(repository)
+            viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
+            advanceUntilIdle()
+
+            var requestCancelled = false
+            val pendingSearch = CompletableDeferred<Unit>()
+            repository.beforeSearch = {
+                try {
+                    pendingSearch.await()
+                } finally {
+                    requestCancelled = true
+                }
+            }
+            repository.searchResult = DataResult.Success(emptyList())
+            viewModel.uiState.value.eventSink(MapUiEvent.ViewportChanged(moved))
+            viewModel.uiState.value.eventSink(MapUiEvent.SearchCurrentArea)
+            runCurrent()
+            assertTrue(viewModel.uiState.value.isLoading)
+
+            viewModel.uiState.value.eventSink(MapUiEvent.ViewportChanged(viewport))
+            assertFalse(viewModel.uiState.value.showSearchThisArea)
+            viewModel.uiState.value.eventSink(MapUiEvent.CancelSearch)
+            runCurrent()
+
+            assertTrue(requestCancelled)
+            assertFalse(viewModel.uiState.value.isLoading)
+            assertEquals(shouldShowSearch, viewModel.uiState.value.showSearchThisArea)
+            assertEquals(bays, viewModel.uiState.value.parkingBays)
+            assertFalse(viewModel.uiState.value.showEmptySearch)
+            assertNull(viewModel.uiState.value.error)
+
+            if (shouldShowSearch) {
+                repository.beforeSearch = {}
+                viewModel.uiState.value.eventSink(MapUiEvent.SearchCurrentArea)
+                advanceUntilIdle()
+                assertTrue(viewModel.uiState.value.showEmptySearch)
+                assertFalse(viewModel.uiState.value.isLoading)
+                assertFalse(viewModel.uiState.value.showSearchThisArea)
+                assertEquals(3, repository.searchedBounds.size)
+            }
+        }
     }
 
     @Test

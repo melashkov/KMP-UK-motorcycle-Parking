@@ -146,6 +146,7 @@ private fun BaysMapContent(
             MapSearchMessage(
                 error = uiState.error,
                 requiresZoom = uiState.requiresZoomToSearch,
+                showEmptySearch = uiState.showEmptySearch,
                 onRetry = {
                     uiState.eventSink(MapUiEvent.SearchCurrentArea)
                 },
@@ -154,16 +155,19 @@ private fun BaysMapContent(
                 },
             )
 
-            if (uiState.error != null || uiState.requiresZoomToSearch) {
+            if (uiState.error != null || uiState.requiresZoomToSearch || uiState.showEmptySearch) {
                 Spacer(Modifier.height(8.dp))
             }
 
             SearchThisAreaButton(
-                show = uiState.showSearchThisArea &&
+                show = uiState.isLoading || (uiState.showSearchThisArea &&
                     uiState.error == null &&
-                    !uiState.requiresZoomToSearch,
+                    !uiState.requiresZoomToSearch),
+                isLoading = uiState.isLoading,
                 onClick = {
-                    uiState.eventSink(MapUiEvent.SearchCurrentArea)
+                    uiState.eventSink(
+                        if (uiState.isLoading) MapUiEvent.CancelSearch else MapUiEvent.SearchCurrentArea,
+                    )
                 },
             )
         }

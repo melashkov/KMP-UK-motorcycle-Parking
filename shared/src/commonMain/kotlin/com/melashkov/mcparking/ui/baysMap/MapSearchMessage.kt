@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_dismiss
 import ukmotorcycleparking.shared.generated.resources.action_retry
 import ukmotorcycleparking.shared.generated.resources.map_search_error_title
+import ukmotorcycleparking.shared.generated.resources.map_search_empty
 import ukmotorcycleparking.shared.generated.resources.map_search_zoom_in
 
 @Composable
@@ -41,9 +43,10 @@ internal fun MapSearchMessage(
     onRetry: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    showEmptySearch: Boolean = false,
 ) {
     AnimatedVisibility(
-        visible = error != null || requiresZoom,
+        visible = error != null || requiresZoom || showEmptySearch,
         modifier = modifier,
         enter = fadeIn(),
         exit = fadeOut(),
@@ -62,8 +65,10 @@ internal fun MapSearchMessage(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = if (requiresZoom) Icons.Default.ZoomIn else {
-                        Icons.Default.ErrorOutline
+                    imageVector = when {
+                        error != null -> Icons.Default.ErrorOutline
+                        requiresZoom -> Icons.Default.ZoomIn
+                        else -> Icons.Default.Info
                     },
                     contentDescription = null,
                     modifier = Modifier.size(22.dp),
@@ -81,7 +86,9 @@ internal fun MapSearchMessage(
                         )
                     } else {
                         Text(
-                            text = stringResource(Res.string.map_search_zoom_in),
+                            text = stringResource(
+                                if (requiresZoom) Res.string.map_search_zoom_in else Res.string.map_search_empty,
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }

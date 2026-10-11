@@ -12,12 +12,14 @@ import com.melashkov.mcparking.domain.interfaces.ParkingRepository
 internal class FakeParkingRepository(
     var searchResult: DataResult<List<ParkingBay>> = DataResult.Success(emptyList()),
     var submissionResult: DataResult<Unit> = DataResult.Success(Unit),
+    var beforeSearch: suspend () -> Unit = {},
 ) : ParkingRepository {
     val searchedBounds = mutableListOf<GeoBounds>()
     val submissions = mutableListOf<ParkingBaySubmission>()
 
     override suspend fun getParkingBays(bounds: GeoBounds): DataResult<List<ParkingBay>> {
         searchedBounds += bounds
+        beforeSearch()
         return searchResult
     }
 

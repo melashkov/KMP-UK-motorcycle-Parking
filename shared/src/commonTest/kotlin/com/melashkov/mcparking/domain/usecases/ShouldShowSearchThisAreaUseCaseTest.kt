@@ -10,10 +10,10 @@ class ShouldShowSearchThisAreaUseCaseTest {
     private val useCase = ShouldShowSearchThisAreaUseCase()
 
     @Test
-    fun hiddenBelowZoomTwelveEvenWithoutPreviousSearch() {
+    fun hiddenBelowZoomThirteenEvenWithoutPreviousSearch() {
         assertFalse(
             useCase(
-                viewport = testViewport(zoom = 11.99),
+                viewport = testViewport(zoom = 12.99),
                 lastSearchedViewport = null,
             ),
         )
@@ -23,10 +23,15 @@ class ShouldShowSearchThisAreaUseCaseTest {
     fun shownWhenNoAreaHasBeenSearched() {
         assertTrue(
             useCase(
-                viewport = testViewport(zoom = 12.0),
+                viewport = testViewport(zoom = 13.0),
                 lastSearchedViewport = null,
             ),
         )
+    }
+
+    @Test
+    fun hiddenWhenMovedViewportIsBelowMinimumZoom() {
+        assertFalse(useCase(testViewport(zoom = 12.99), testViewport()))
     }
 
     @Test

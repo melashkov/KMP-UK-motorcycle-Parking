@@ -18,7 +18,7 @@ import androidx.compose.ui.backhandler.BackHandler
 import org.jetbrains.compose.resources.stringResource
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_back
-import ukmotorcycleparking.shared.generated.resources.bay_editor_add_title
+import ukmotorcycleparking.shared.generated.resources.action_add_parking_bay
 import ukmotorcycleparking.shared.generated.resources.bay_editor_suggest_edit_title
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -119,7 +119,7 @@ private fun EditorTopBar(
         title = {
             Text(
                 when (mode) {
-                    BayEditorMode.Add -> stringResource(Res.string.bay_editor_add_title)
+                    BayEditorMode.Add -> stringResource(Res.string.action_add_parking_bay)
                     BayEditorMode.Edit -> stringResource(
                         Res.string.bay_editor_suggest_edit_title,
                     )

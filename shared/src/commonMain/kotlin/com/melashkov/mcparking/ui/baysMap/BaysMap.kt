@@ -159,11 +159,14 @@ private fun BaysMapContent(
             }
 
             SearchThisAreaButton(
-                show = uiState.showSearchThisArea &&
+                show = uiState.isLoading || (uiState.showSearchThisArea &&
                     uiState.error == null &&
-                    !uiState.requiresZoomToSearch,
+                    !uiState.requiresZoomToSearch),
+                isLoading = uiState.isLoading,
                 onClick = {
-                    uiState.eventSink(MapUiEvent.SearchCurrentArea)
+                    uiState.eventSink(
+                        if (uiState.isLoading) MapUiEvent.CancelSearch else MapUiEvent.SearchCurrentArea,
+                    )
                 },
             )
         }

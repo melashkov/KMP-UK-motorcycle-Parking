@@ -2,6 +2,7 @@
 <resources>
     <string name="action_add_bay">Add bay</string>
     <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
     <string name="action_change">Change</string>
     <string name="action_done">Done</string>
     <string name="action_dismiss">Dismiss</string>
@@ -19,7 +20,6 @@
     <string name="bay_details_fallback_name">Motorcycle parking</string>
     <string name="bay_details_section">Details</string>
 
-    <string name="bay_editor_add_title">Add parking bay</string>
     <string name="bay_editor_description_label">Description (optional)</string>
     <string name="bay_editor_description_placeholder">Access notes, restrictions, number of spaces…</string>
     <string name="bay_editor_location_help">Move the centre pin to the exact parking location</string>
@@ -32,8 +32,7 @@
     <string name="bay_editor_submit_new">Submit new bay</string>
     <string name="bay_editor_character_count">%1$d/%2$d</string>
     <string name="bay_editor_error_name_required">Enter a name for this parking bay</string>
-    <string name="bay_editor_error_name_too_long">Use %1$d characters or fewer</string>
-    <string name="bay_editor_error_description_too_long">Use %1$d characters or fewer</string>
+    <string name="bay_editor_error_too_long">Use %1$d characters or fewer</string>
     <string name="bay_editor_error_type_required">Choose a parking type</string>
     <string name="bay_editor_error_location_required">Choose a location</string>
     <string name="bay_editor_submission_error_title">Couldn’t submit this change</string>

@@ -15,6 +15,7 @@ import com.melashkov.mcparking.ui.navigation.AppNavigationSink
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,6 +25,7 @@ sealed interface MapUiEvent {
     data class InitialViewport(val viewport: MapViewport) : MapUiEvent
     data class ViewportChanged(val viewport: MapViewport) : MapUiEvent
     data object SearchCurrentArea : MapUiEvent
+    data object CancelSearch : MapUiEvent
     data class AddBay(val location: GeoCoordinate) : MapUiEvent
     data class NavigateToBay(val bay: ParkingBay) : MapUiEvent
     data class ShareBay(val bay: ParkingBay) : MapUiEvent
@@ -59,12 +61,14 @@ class BaysMapViewModel(
 
     private var hasSearchedInitialArea = false
     private var lastSearchedViewport: MapViewport? = null
+    private var searchJob: Job? = null
 
     private fun onEvent(event: MapUiEvent) {
         when (event) {
             is MapUiEvent.InitialViewport -> searchInitialArea(event.viewport)
             is MapUiEvent.ViewportChanged -> onMapViewportChanged(event.viewport)
             MapUiEvent.SearchCurrentArea -> searchCurrentArea()
+            MapUiEvent.CancelSearch -> cancelSearch()
             is MapUiEvent.AddBay -> {
                 appNavigationSink.navigate(
                     AddBayRoute(
@@ -138,13 +142,21 @@ class BaysMapViewModel(
         _uiState.update { state ->
             state.copy(
                 currentViewport = viewport,
-                showSearchThisArea = shouldShowSearchThisArea(
+                showSearchThisArea = !state.isLoading && shouldShowSearchThisArea(
                     viewport = viewport,
                     lastSearchedViewport = lastSearchedViewport,
                 ),
                 error = null,
                 requiresZoomToSearch = false,
             )
+        }
+    }
+
+    private fun cancelSearch() {
+        searchJob?.cancel()
+        searchJob = null
+        _uiState.update {
+            it.copy(isLoading = false, showSearchThisArea = true)
         }
     }
 
@@ -172,7 +184,7 @@ class BaysMapViewModel(
             )
         }
 
-        viewModelScope.launch {
+        searchJob = viewModelScope.launch {
             when (val result = searchParkingBays(viewport)) {
                 is SearchParkingResult.Success -> {
                     lastSearchedViewport = viewport

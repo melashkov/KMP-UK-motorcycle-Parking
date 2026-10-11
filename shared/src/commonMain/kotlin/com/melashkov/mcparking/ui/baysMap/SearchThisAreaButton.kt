@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import ukmotorcycleparking.shared.generated.resources.Res
+import ukmotorcycleparking.shared.generated.resources.action_cancel
 import ukmotorcycleparking.shared.generated.resources.action_search_this_area
 
 @Composable
@@ -29,6 +31,7 @@ fun SearchThisAreaButton(
     show: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
 ) {
     AnimatedVisibility(
         visible = show,
@@ -50,16 +53,25 @@ fun SearchThisAreaButton(
                 ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
 
                 Spacer(Modifier.width(8.dp))
 
                 Text(
-                    text = stringResource(Res.string.action_search_this_area),
+                    text = stringResource(
+                        if (isLoading) Res.string.action_cancel else Res.string.action_search_this_area,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

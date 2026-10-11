@@ -1,0 +1,104 @@
+name: Tests and builds
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android tests and debug builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Run shared tests on Android
+        run: ./gradlew :shared:testAndroidHostTest --stacktrace
+
+      - name: Build Android debug APKs
+        run: ./gradlew :androidApp:assembleDevDebug :androidApp:assembleProdDebug --stacktrace
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          path: shared/build/reports/tests/
+
+      - name: Upload Android debug APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apks
+          path: androidApp/build/outputs/apk/*/debug/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS tests and simulator build
+    # The project only supports arm64 iOS simulators.
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Run shared tests on iOS
+        run: ./gradlew :shared:iosSimulatorArm64Test --stacktrace
+
+      - name: Build iOS simulator app
+        # Override the local Android Studio Java path from Config.xcconfig.
+        run: |
+          xcodebuild build \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios \
+            JAVA_HOME="$JAVA_HOME" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-reports
+          path: shared/build/reports/tests/
+
+      - name: Package iOS simulator app
+        run: tar -czf build/ios-simulator-app.tar.gz -C build/ios/Build/Products/Debug-iphonesimulator UKMotorcycleParking.app
+
+      - name: Upload iOS simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: build/ios-simulator-app.tar.gz
+          if-no-files-found: error

@@ -10,7 +10,7 @@ class ShouldShowSearchThisAreaUseCase {
         viewport: MapViewport,
         lastSearchedViewport: MapViewport?,
     ): Boolean {
-        if (viewport.zoom < 12.0) {
+        if (viewport.zoom < SearchParkingBaysUseCase.MIN_SEARCH_ZOOM) {
             return false
         }
 

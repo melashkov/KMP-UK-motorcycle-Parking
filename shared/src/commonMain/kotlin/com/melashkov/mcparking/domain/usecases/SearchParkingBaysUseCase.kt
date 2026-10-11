@@ -31,7 +31,7 @@ class SearchParkingBaysUseCase(
     }
 
     companion object {
-        private const val MIN_SEARCH_ZOOM = 13.0
+        internal const val MIN_SEARCH_ZOOM = 13.0
     }
 }
 

@@ -146,6 +146,7 @@ private fun BaysMapContent(
             MapSearchMessage(
                 error = uiState.error,
                 requiresZoom = uiState.requiresZoomToSearch,
+                showEmptySearch = uiState.showEmptySearch,
                 onRetry = {
                     uiState.eventSink(MapUiEvent.SearchCurrentArea)
                 },
@@ -154,7 +155,7 @@ private fun BaysMapContent(
                 },
             )
 
-            if (uiState.error != null || uiState.requiresZoomToSearch) {
+            if (uiState.error != null || uiState.requiresZoomToSearch || uiState.showEmptySearch) {
                 Spacer(Modifier.height(8.dp))
             }
 

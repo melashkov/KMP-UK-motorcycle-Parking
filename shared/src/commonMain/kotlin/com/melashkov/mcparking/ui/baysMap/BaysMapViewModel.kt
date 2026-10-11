@@ -43,6 +43,7 @@ data class MapUiState(
     val showSearchThisArea: Boolean = false,
     val error: AppError? = null,
     val requiresZoomToSearch: Boolean = false,
+    val showEmptySearch: Boolean = false,
     val currentViewport: MapViewport? = null,
     val eventSink: (MapUiEvent) -> Unit = {},
 )
@@ -91,6 +92,7 @@ class BaysMapViewModel(
                     it.copy(
                         error = null,
                         requiresZoomToSearch = false,
+                        showEmptySearch = false,
                     )
                 }
             }
@@ -148,6 +150,7 @@ class BaysMapViewModel(
                 ),
                 error = null,
                 requiresZoomToSearch = false,
+                showEmptySearch = false,
             )
         }
     }
@@ -156,7 +159,12 @@ class BaysMapViewModel(
         searchJob?.cancel()
         searchJob = null
         _uiState.update {
-            it.copy(isLoading = false, showSearchThisArea = true)
+            it.copy(
+                isLoading = false,
+                showSearchThisArea = it.currentViewport?.let { viewport ->
+                    shouldShowSearchThisArea(viewport, lastSearchedViewport)
+                } ?: false,
+            )
         }
     }
 
@@ -170,6 +178,7 @@ class BaysMapViewModel(
                     showSearchThisArea = true,
                     error = AppError.Unknown,
                     requiresZoomToSearch = false,
+                    showEmptySearch = false,
                 )
             }
             return
@@ -181,6 +190,7 @@ class BaysMapViewModel(
                 showSearchThisArea = false,
                 error = null,
                 requiresZoomToSearch = false,
+                showEmptySearch = false,
             )
         }
 
@@ -204,6 +214,7 @@ class BaysMapViewModel(
                             } ?: false,
                             error = null,
                             requiresZoomToSearch = false,
+                            showEmptySearch = bays.isEmpty() && it.currentViewport == viewport,
                         )
                     }
                 }

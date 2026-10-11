@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./design-assets/app-icon-source.png" alt="UK Motorcycle Parking app icon" width="120">
+</p>
+
 # UK Motorcycle Parking
 
 An Android and iOS app for finding motorcycle parking in the UK. Riders can find
@@ -21,15 +25,34 @@ or corrections for review.
 
 ## About the project
 
-This repository contains the Kotlin Multiplatform app. Android and iOS share Compose
-UI, ViewModels, domain logic and API access. Platform implementations handle location
-permissions, external actions such as directions and sharing, and app configuration.
+I started UK Motorcycle Parking in 2013. The first version used Titanium, but keeping
+up with API changes and instability became difficult. I rewrote it as native Android
+and iOS apps for the second version.
 
-The main flow is map-based: load the initial area, select a bay for details, or move
-the map and choose **Search this area**. Bays are grouped into clusters and styled by
-parking type. The submission form supports both new locations and edits to existing bays.
+This is the third version, now built with Kotlin Multiplatform. The aim is to bring
+the separate SwiftUI and Android apps together, keep their features aligned, and
+reduce the work needed to maintain them.
+
+I want to keep the app free and manageable over the long term. Riders add parking
+bays when they can, and use the locations others have shared when visiting a new
+town or travelling. We help each other find somewhere to park.
+
+## Maps and running costs
+
+Google Maps became too expensive for the project's long-term goal of staying free.
+Map loads and place-search requests added running costs as people used the app.
+Moving to maps based on OpenStreetMap data makes more sense for this project.
+
+A big thank you to [Zsolt Ero (hyperknot)](https://github.com/hyperknot), who created
+[OpenFreeMap](https://openfreemap.org). Its free public map hosting makes this move
+possible without taking on the cost and maintenance of hosting map tiles myself.
+Thanks also to the OpenStreetMap contributors whose data makes these maps possible.
 
 ## Engineering
+
+Android and iOS share Compose UI, ViewModels, domain logic and API access. Platform
+implementations handle location permissions, external actions such as directions
+and sharing, and app configuration.
 
 The shared code separates UI state, domain rules and data access. ViewModels expose
 state through `StateFlow` and accept UI events; use cases depend on a repository
@@ -73,6 +96,12 @@ Both use the production API.
 
 See the [development guide](./docs/development.md) for toolchain requirements,
 build commands and tests.
+
+## Support the project
+
+Adding a missing bay or correcting a location helps everyone who uses the app.
+If you like the project and would like to help with running costs, you can
+[buy me a coffee on Ko-fi](https://ko-fi.com/denys3573).
 
 ## Contributing and license
 

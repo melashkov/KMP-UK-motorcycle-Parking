@@ -31,7 +31,7 @@ android {
         versionCode = providers.gradleProperty("releaseVersionCode")
             .map(String::toInt)
             .getOrElse(1678468730)
-        versionName = "3.0"
+        versionName = "3.0.1"
     }
     flavorDimensions += "environment"
     productFlavors {

@@ -231,6 +231,28 @@ echo "Built:"
 echo "  $AAB_PATH"
 echo
 
+# Extract the mapping from this exact AAB rather than trusting a separate build output.
+echo "Preparing R8 deobfuscation mapping..."
+MAPPING_PATH="$(python3 - "$AAB_PATH" <<'PY'
+import sys
+from pathlib import Path
+from zipfile import BadZipFile, ZipFile
+
+bundle = Path(sys.argv[1])
+try:
+    with ZipFile(bundle) as archive:
+        mapping = archive.read("BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map")
+    if not mapping.strip():
+        raise ValueError("The bundle's R8 mapping is empty")
+    output = bundle.with_name("mapping.txt")
+    output.write_bytes(mapping)
+    print(output)
+except (OSError, KeyError, BadZipFile, ValueError) as error:
+    print(f"ERROR: Cannot prepare R8 mapping: {error}", file=sys.stderr)
+    sys.exit(1)
+PY
+)"
+
 # Prepare and verify symbols before uploading any release artifacts.
 echo "Preparing native debug symbols..."
 SYMBOLS_PATH="$(python3 "$SCRIPT_DIR/prepare-android-symbols.py" "$AAB_PATH")"
@@ -264,6 +286,15 @@ echo "Uploaded versionCode: $VERSION_CODE"
 # -----------------------------------------------------------------------------
 # Upload symbols for this exact bundle version
 # -----------------------------------------------------------------------------
+
+echo "Uploading R8 deobfuscation mapping for versionCode $VERSION_CODE..."
+play_request \
+    -X POST \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/octet-stream" \
+    --data-binary "@$MAPPING_PATH" \
+    "$UPLOAD_BASE/applications/$PACKAGE_NAME/edits/$EDIT_ID/apks/$VERSION_CODE/deobfuscationFiles/proguard?uploadType=media" \
+    >/dev/null
 
 echo "Uploading native debug symbols for versionCode $VERSION_CODE..."
 play_request \
@@ -324,5 +355,6 @@ echo "Package:      $PACKAGE_NAME"
 echo "Version code: $VERSION_CODE"
 echo "Track:        $TRACK"
 echo "Bundle:       $AAB_PATH"
+echo "Mapping:      $MAPPING_PATH"
 echo "Symbols:      $SYMBOLS_PATH"
 echo "========================================"

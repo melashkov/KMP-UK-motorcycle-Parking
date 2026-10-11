@@ -127,9 +127,13 @@ app archive are available as workflow artifacts. No signing secrets are required
 
 ### Android release symbols
 
-`scripts/release-android.sh` automatically prepares and uploads native debug symbols to Google Play
+`scripts/release-android.sh` automatically prepares and uploads the R8 mapping and native debug symbols to Google Play
 for the uploaded bundle's version code, before assigning it to a track and committing the release.
 It requires Python 3 in addition to the existing `curl`, `jq`, and `gcloud` tools.
+
+The script extracts the R8 mapping directly from the AAB, saves it as `mapping.txt` beside the
+bundle, and explicitly uploads it as a `proguard` deobfuscation file. Missing or empty mappings
+and failed uploads stop the release before it is assigned to a track.
 
 MapLibre ships stripped native libraries, so the script downloads its matching OpenGL **release**
 symbol archive from the official MapLibre GitHub release. The archive is cached under
@@ -162,7 +166,8 @@ The shared UI uses the Material Icons library; R8 removes unused icon classes fr
 builds. Unused shared drawable assets have been removed.
 
 Release builds generate `androidApp/build/outputs/mapping/prodRelease/mapping.txt`; Gradle also
-embeds this mapping in the AAB for Google Play to deobfuscate crashes. Keep the mapping for the
+embeds this mapping in the AAB for Google Play to deobfuscate crashes. The release script also
+uploads it explicitly rather than relying on automatic extraction by Play. Keep the mapping for the
 exact build when analyzing crashes locally. Test map loading, parking details, the parking report
 form, and settings on an optimized release build when changing dependencies or keep rules.
 

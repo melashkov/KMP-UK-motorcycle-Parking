@@ -57,9 +57,18 @@ jobs:
     # The project only supports arm64 iOS simulators.
     runs-on: macos-15
     timeout-minutes: 45
+    env:
+      # spmForKmp expects the SwiftPM module layout from Xcode 26.
+      # macos-15 defaults to Xcode 16.4, which omits the expected bridge module.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Check Apple toolchain
+        run: |
+          xcodebuild -version
+          xcrun swift --version
 
       - name: Set up Java
         uses: actions/setup-java@v5

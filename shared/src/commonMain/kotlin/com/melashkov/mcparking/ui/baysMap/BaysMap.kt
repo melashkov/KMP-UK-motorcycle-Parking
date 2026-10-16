@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import com.melashkov.mcparking.ui.theme.parkingMapStyle
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
+import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
 import com.melashkov.mcparking.ui.support.MapOverflowMenu
 import com.melashkov.mcparking.ui.shared.UserLocation
@@ -44,6 +46,7 @@ import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
+import ukmotorcycleparking.shared.generated.resources.places_search_title
 
 @Composable
 fun BaysMap(
@@ -78,6 +81,9 @@ private fun BaysMapContent(
 ) {
     val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
+    var placesVisible by remember { mutableStateOf(false) }
+    var destination by remember { mutableStateOf<Place?>(null) }
+    var destinationJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
@@ -109,6 +115,7 @@ private fun BaysMapContent(
             baseStyle = parkingMapStyle(),
             cameraState = cameraState
         ) {
+            destination?.let { DestinationMarker(it) }
             ParkingBayMarkers(
                 markers = uiState.parkingBays,
                 onMarkerClick = {
@@ -133,6 +140,37 @@ private fun BaysMapContent(
                     locateRequest = locateRequest,
                 )
             }
+        }
+
+        SmallFloatingActionButton(
+            onClick = { placesVisible = true },
+            modifier = Modifier.align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp),
+        ) {
+            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.places_search_title))
+        }
+
+        if (placesVisible) {
+            PlacesSearchSheet(
+                near = cameraState.position.target.toGeoCoordinate(),
+                onDismiss = { placesVisible = false },
+                onSelect = { place ->
+                    placesVisible = false
+                    destination = place
+                    destinationJob?.cancel()
+                    uiState.eventSink(MapUiEvent.CancelSearch)
+                    uiState.eventSink(MapUiEvent.DismissBayDetails)
+                    destinationJob = coroutineScope.launch {
+                        cameraState.animateTo(cameraState.position.copy(
+                            target = Position(place.longitude, place.latitude),
+                            zoom = place.destinationZoom(),
+                        ))
+                        cameraState.currentViewport()?.let {
+                            uiState.eventSink(MapUiEvent.SearchDestinationArea(it))
+                        }
+                    }
+                },
+            )
         }
 
         Column(

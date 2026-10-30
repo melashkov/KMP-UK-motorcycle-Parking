@@ -86,6 +86,8 @@
     <string name="release_search_body">Search for towns, streets and postcodes in Great Britain using the search button on the map.</string>
     <string name="places_search_title">Search places</string>
     <string name="places_search_hint">City, street or postcode</string>
+    <string name="places_credits_compact">OS · OSNI · Data credits</string>
+    <string name="places_data_credits">Place data</string>
     <string name="places_coverage">UK towns and streets. Postcode search covers Great Britain only. NI streets use approximate nearby-place labels.</string>
     <string name="places_search_failed">Place search is unavailable. Try again or explore the map.</string>
     <string name="places_search_empty">No places found. Try adding a town name.</string>

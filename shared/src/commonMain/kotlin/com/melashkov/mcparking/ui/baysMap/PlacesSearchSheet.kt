@@ -2,8 +2,8 @@ package com.melashkov.mcparking.ui.baysMap
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,10 +27,17 @@ internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, 
     val viewModel = koinViewModel<PlacesSearchViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val focus = remember { FocusRequester() }
+    var showCredits by remember { mutableStateOf(false) }
+    var licenceLinkFailed by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
+    val licenceUrl = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
     val dismiss = { viewModel.reset(); onDismiss() }
     DisposableEffect(viewModel) { onDispose { viewModel.reset() } }
     ModalBottomSheet(onDismissRequest = dismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).imePadding()) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).imePadding()
+                .verticalScroll(rememberScrollState()),
+        ) {
             OutlinedTextField(
                 value = state.query,
                 onValueChange = { viewModel.search(it, near) },
@@ -40,7 +48,6 @@ internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, 
                 modifier = Modifier.fillMaxWidth().focusRequester(focus),
             )
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(Res.string.places_coverage), style = MaterialTheme.typography.bodySmall)
             if (state.loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
             if (state.failed) {
                 Text(stringResource(Res.string.places_search_failed), Modifier.padding(top = 12.dp))
@@ -50,8 +57,8 @@ internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, 
             } else if (state.searched && !state.loading && state.results.isEmpty()) {
                 Text(stringResource(Res.string.places_search_empty), Modifier.padding(top = 12.dp))
             }
-            LazyColumn(Modifier.heightIn(max = 320.dp)) {
-                items(state.results, key = { it.id }) { place ->
+            state.results.forEach { place ->
+                key(place.id) {
                     val typeLabel = when (place.type) {
                         "city" -> Res.string.place_type_city
                         "town" -> Res.string.place_type_town
@@ -70,9 +77,34 @@ internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, 
                     )
                 }
             }
-            Text(stringResource(Res.string.places_attribution),
-                style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 16.dp))
+            TextButton(
+                onClick = { showCredits = true },
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp),
+            ) {
+                Text(stringResource(Res.string.places_credits_compact), style = MaterialTheme.typography.labelSmall)
+            }
         }
         LaunchedEffect(Unit) { focus.requestFocus() }
+    }
+    if (showCredits) {
+        AlertDialog(
+            onDismissRequest = { showCredits = false },
+            title = { Text(stringResource(Res.string.places_data_credits)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(Res.string.places_attribution))
+                    Text(stringResource(Res.string.places_coverage))
+                    if (licenceLinkFailed) Text(stringResource(Res.string.support_link_failed, licenceUrl))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showCredits = false }) { Text(stringResource(Res.string.action_done)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    licenceLinkFailed = runCatching { uriHandler.openUri(licenceUrl) }.isFailure
+                }) { Text(stringResource(Res.string.places_licence_link)) }
+            },
+        )
     }
 }

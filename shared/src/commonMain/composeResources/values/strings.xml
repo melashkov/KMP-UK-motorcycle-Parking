@@ -82,8 +82,8 @@
     <string name="release_title">A fresh look for UK Motorcycle Parking</string>
     <string name="release_map_title">A new map</string>
     <string name="release_map_body">Rebuilt with OpenStreetMap as Google’s mapping costs changed. The same community parking data is still here.</string>
-    <string name="release_search_title">Location search is taking a break</string>
-    <string name="release_search_body">Search for towns, streets and postcodes in Great Britain using the search button on the map.</string>
+    <string name="release_search_title">Search for places</string>
+    <string name="release_search_body">Find UK towns and streets, plus postcodes in Great Britain, using the search button on the map.</string>
     <string name="places_search_title">Search places</string>
     <string name="places_search_hint">City, street or postcode</string>
     <string name="places_credits_compact">OS · OSNI · Data credits</string>

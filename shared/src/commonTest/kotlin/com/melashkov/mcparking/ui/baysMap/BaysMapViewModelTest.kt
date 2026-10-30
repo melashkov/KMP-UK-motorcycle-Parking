@@ -2,7 +2,6 @@ package com.melashkov.mcparking.ui.baysMap
 
 import com.melashkov.mcparking.FakeParkingRepository
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
-import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
@@ -96,47 +95,6 @@ class BaysMapViewModelTest {
         assertEquals(bays, viewModel.uiState.value.parkingBays)
         assertFalse(viewModel.uiState.value.isLoading)
         assertFalse(viewModel.uiState.value.showSearchThisArea)
-    }
-
-    @Test
-    fun selectingPlaceCancelsSearchDismissesBayAndRequestsCameraMove() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(beforeSearch = { kotlinx.coroutines.awaitCancellation() })
-        val viewModel = createViewModel(repository)
-        val selected = Place("oxford", "Oxford", "England", "city", 51.75, -1.25)
-        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
-        viewModel.uiState.value.eventSink(MapUiEvent.SelectedBay(testBay()))
-        runCurrent()
-        assertTrue(viewModel.uiState.value.isLoading)
-
-        viewModel.uiState.value.eventSink(MapUiEvent.SelectedPlace(selected))
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.isLoading)
-        assertNull(viewModel.uiState.value.selectedBay)
-        assertEquals(selected, viewModel.uiState.value.destination)
-        assertEquals(selected, viewModel.cameraDestinations.first())
-        assertEquals(1, repository.searchedBounds.size)
-    }
-
-    @Test
-    fun selectingTheSamePlaceAgainRequestsAnotherCameraMove() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
-        val selected = Place("oxford", "Oxford", "England", "city", 51.75, -1.25)
-        repeat(2) {
-            viewModel.uiState.value.eventSink(MapUiEvent.SelectedPlace(selected))
-            assertEquals(selected, viewModel.cameraDestinations.first())
-        }
-    }
-
-    @Test
-    fun mapReceivesOnlyLatestQueuedDestination() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
-        val oxford = Place("oxford", "Oxford", "England", "city", 51.75, -1.25)
-        val london = oxford.copy(id = "london", name = "London")
-        viewModel.uiState.value.eventSink(MapUiEvent.SelectedPlace(oxford))
-        viewModel.uiState.value.eventSink(MapUiEvent.SelectedPlace(london))
-        assertEquals(london, viewModel.cameraDestinations.first())
-        assertEquals(london, viewModel.uiState.value.destination)
     }
 
     @Test

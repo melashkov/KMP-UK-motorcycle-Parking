@@ -25,7 +25,6 @@ internal fun EntryProviderScope<NavKey>.baysMapEntries() {
 
         BaysMap(
             uiState = state,
-            cameraDestinations = viewModel.cameraDestinations,
         )
     }
 }

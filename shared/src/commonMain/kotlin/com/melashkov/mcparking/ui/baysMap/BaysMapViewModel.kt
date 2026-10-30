@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
-import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.usecases.SearchParkingBaysUseCase
@@ -17,8 +16,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -33,7 +30,6 @@ sealed interface MapUiEvent {
     data class AddBay(val location: GeoCoordinate) : MapUiEvent
     data class NavigateToBay(val bay: ParkingBay) : MapUiEvent
     data class ShareBay(val bay: ParkingBay) : MapUiEvent
-    data class SelectedPlace(val place: Place) : MapUiEvent
     data class SelectedBay(val bay: ParkingBay) : MapUiEvent
     data class SuggestEdit(val bay: ParkingBay) : MapUiEvent
     data class OpenStreetView(val bay: ParkingBay) : MapUiEvent
@@ -44,7 +40,6 @@ sealed interface MapUiEvent {
 data class MapUiState(
     val parkingBays: ImmutableList<ParkingBay> = persistentListOf(),
     val selectedBay: ParkingBay? = null,
-    val destination: Place? = null,
     val isLoading: Boolean = false,
     val showSearchThisArea: Boolean = false,
     val error: AppError? = null,
@@ -65,11 +60,6 @@ class BaysMapViewModel(
 
     private val _uiState = MutableStateFlow(MapUiState(eventSink = eventSink))
     val uiState = _uiState.asStateFlow()
-
-    // Camera movement is a UI command. Keep only the latest selection while
-    // the map is unavailable, and allow repeated selections of the same place.
-    private val cameraDestinationChannel = Channel<Place>(Channel.CONFLATED)
-    val cameraDestinations = cameraDestinationChannel.receiveAsFlow()
 
     private var hasSearchedInitialArea = false
     private var lastSearchedViewport: MapViewport? = null
@@ -93,12 +83,6 @@ class BaysMapViewModel(
                         longitude = event.location.longitude,
                     ),
                 )
-            }
-
-            is MapUiEvent.SelectedPlace -> {
-                cancelSearch()
-                _uiState.update { it.copy(selectedBay = null, destination = event.place) }
-                cameraDestinationChannel.trySend(event.place)
             }
 
             is MapUiEvent.SelectedBay -> {

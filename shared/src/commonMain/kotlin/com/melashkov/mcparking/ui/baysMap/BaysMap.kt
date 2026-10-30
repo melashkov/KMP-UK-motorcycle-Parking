@@ -21,7 +21,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -31,14 +30,10 @@ import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoBounds
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
-import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
 import com.melashkov.mcparking.ui.support.MapOverflowMenu
 import com.melashkov.mcparking.ui.shared.UserLocation
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -55,7 +50,6 @@ import ukmotorcycleparking.shared.generated.resources.places_search_title
 @Composable
 fun BaysMap(
     uiState: MapUiState,
-    cameraDestinations: Flow<Place>,
 ) {
     ParkingBayDetailsScaffold(
         bay = uiState.selectedBay,
@@ -75,7 +69,7 @@ fun BaysMap(
             uiState.eventSink(MapUiEvent.OpenStreetView(it))
         },
     ) {
-        BaysMapContent(uiState, cameraDestinations)
+        BaysMapContent(uiState)
     }
 }
 
@@ -83,25 +77,10 @@ fun BaysMap(
 @Composable
 private fun BaysMapContent(
     uiState: MapUiState,
-    cameraDestinations: Flow<Place>,
 ) {
     val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
-    var placesVisible by remember { mutableStateOf(false) }
-    val eventSink by rememberUpdatedState(uiState.eventSink)
-
-    LaunchedEffect(cameraState, cameraDestinations) {
-        cameraDestinations.collectLatest { place ->
-            cameraState.animateTo(cameraState.position.copy(
-                target = Position(place.longitude, place.latitude),
-                zoom = place.destinationZoom(),
-            ))
-            ensureActive()
-            cameraState.currentViewport()?.let {
-                eventSink(MapUiEvent.SearchDestinationArea(it))
-            }
-        }
-    }
+    val placeSearch = rememberMapPlaceSearchState(cameraState, uiState.eventSink)
 
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
@@ -133,7 +112,7 @@ private fun BaysMapContent(
             baseStyle = parkingMapStyle(),
             cameraState = cameraState
         ) {
-            uiState.destination?.let { DestinationMarker(it) }
+            placeSearch.destination?.let { DestinationMarker(it) }
             ParkingBayMarkers(
                 markers = uiState.parkingBays,
                 onMarkerClick = {
@@ -161,21 +140,18 @@ private fun BaysMapContent(
         }
 
         SmallFloatingActionButton(
-            onClick = { placesVisible = true },
+            onClick = placeSearch::openSearch,
             modifier = Modifier.align(Alignment.TopStart)
                 .windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp),
         ) {
             Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.places_search_title))
         }
 
-        if (placesVisible) {
+        if (placeSearch.isSearchVisible) {
             PlacesSearchSheet(
                 near = cameraState.position.target.toGeoCoordinate(),
-                onDismiss = { placesVisible = false },
-                onSelect = { place ->
-                    placesVisible = false
-                    uiState.eventSink(MapUiEvent.SelectedPlace(place))
-                },
+                onDismiss = placeSearch::dismissSearch,
+                onSelect = placeSearch::selectPlace,
             )
         }
 
@@ -260,7 +236,7 @@ private const val ClusterZoomIncrement = 2.0
 private const val MaxClusterTapZoom = 15.0
 
 
-private fun CameraState.currentViewport(): MapViewport? {
+internal fun CameraState.currentViewport(): MapViewport? {
     val bounds = projection?.queryVisibleBoundingBox()
         ?: return null
 

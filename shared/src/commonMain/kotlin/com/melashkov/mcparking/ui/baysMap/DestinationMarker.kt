@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.Place
+import com.melashkov.mcparking.domain.entity.PlaceType
 import kotlinx.serialization.json.JsonObject
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.layers.CircleLayer
@@ -17,8 +18,9 @@ import org.maplibre.spatialk.geojson.Point
 import org.maplibre.spatialk.geojson.Position
 
 internal fun Place.destinationZoom(): Double = when (type) {
-    "city", "town", "village", "hamlet", "settlement", "suburb" -> 13.0
-    else -> 15.0
+    PlaceType.CITY, PlaceType.TOWN, PlaceType.VILLAGE,
+    PlaceType.HAMLET, PlaceType.SETTLEMENT, PlaceType.SUBURB -> 13.0
+    PlaceType.STREET, PlaceType.POSTCODE, PlaceType.STATION, PlaceType.UNKNOWN -> 15.0
 }
 
 @Composable

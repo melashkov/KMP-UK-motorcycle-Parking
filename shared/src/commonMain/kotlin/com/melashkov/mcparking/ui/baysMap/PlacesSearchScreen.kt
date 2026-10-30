@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.Place
+import com.melashkov.mcparking.domain.entity.PlaceType
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import ukmotorcycleparking.shared.generated.resources.*
@@ -149,14 +150,13 @@ internal fun PlacesSearchScreenContent(
 @Composable
 private fun PlaceSearchResult(place: Place, onSelect: (Place) -> Unit) {
     val typeLabel = when (place.type) {
-        "city" -> Res.string.place_type_city
-        "town" -> Res.string.place_type_town
-        "village", "hamlet", "settlement" -> Res.string.place_type_village
-        "suburb" -> Res.string.place_type_area
-        "street" -> Res.string.place_type_street
-        "postcode" -> Res.string.place_type_postcode
-        "station" -> Res.string.place_type_station
-        else -> Res.string.place_type_area
+        PlaceType.CITY -> Res.string.place_type_city
+        PlaceType.TOWN -> Res.string.place_type_town
+        PlaceType.VILLAGE, PlaceType.HAMLET, PlaceType.SETTLEMENT -> Res.string.place_type_village
+        PlaceType.STREET -> Res.string.place_type_street
+        PlaceType.POSTCODE -> Res.string.place_type_postcode
+        PlaceType.STATION -> Res.string.place_type_station
+        PlaceType.SUBURB, PlaceType.UNKNOWN -> Res.string.place_type_area
     }
     ListItem(
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),

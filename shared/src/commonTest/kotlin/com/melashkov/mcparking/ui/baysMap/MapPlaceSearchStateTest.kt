@@ -1,6 +1,7 @@
 package com.melashkov.mcparking.ui.baysMap
 
 import com.melashkov.mcparking.domain.entity.Place
+import com.melashkov.mcparking.domain.entity.PlaceType
 import com.melashkov.mcparking.testViewport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,7 +21,7 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapPlaceSearchStateTest {
-    private fun place(name: String) = Place(name, name, "England", "city", 51.5, -0.5)
+    private fun place(name: String) = Place(name, name, "England", PlaceType.CITY, 51.5, -0.5)
 
     @Test fun openingAndDismissingSearchPreservesDestination() = runTest {
         val state = MapPlaceSearchState(this, moveCamera = { null }, onEvent = {})

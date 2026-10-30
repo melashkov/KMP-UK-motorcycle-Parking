@@ -2,6 +2,7 @@ package com.melashkov.mcparking.ui.baysMap
 
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.Place
+import com.melashkov.mcparking.domain.entity.PlaceType
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.PlacesRepository
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ class PlacesSearchViewModelTest {
     @BeforeTest fun setup() { Dispatchers.setMain(StandardTestDispatcher()) }
     @AfterTest fun teardown() { Dispatchers.resetMain() }
 
-    private fun place(name: String) = Place(name, name, "England", "city", 51.75, -1.25)
+    private fun place(name: String) = Place(name, name, "England", PlaceType.CITY, 51.75, -1.25)
 
     @Test fun onlyLatestQueryIsSentAfterDebounce() = runTest {
         val requests = mutableListOf<String>()
@@ -80,9 +81,10 @@ class PlacesSearchViewModelTest {
     }
 
     @Test fun destinationZoomKeepsParkingSearchLocalAndShowsSettlementOverview() {
-        assertEquals(15.0, place("Street").copy(type = "street").destinationZoom())
+        assertEquals(15.0, place("Street").copy(type = PlaceType.STREET).destinationZoom())
+        assertEquals(15.0, place("Unknown").copy(type = PlaceType.UNKNOWN).destinationZoom())
         assertEquals(13.0, place("London").destinationZoom())
-        assertEquals(13.0, place("Town").copy(type = "town").destinationZoom())
-        assertEquals(13.0, place("Village").copy(type = "village").destinationZoom())
+        assertEquals(13.0, place("Town").copy(type = PlaceType.TOWN).destinationZoom())
+        assertEquals(13.0, place("Village").copy(type = PlaceType.VILLAGE).destinationZoom())
     }
 }

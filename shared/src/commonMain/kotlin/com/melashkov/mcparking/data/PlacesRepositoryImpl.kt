@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.data
 
+import com.melashkov.mcparking.data.remote.dto.PlaceDto
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.interfaces.AppError
@@ -17,7 +18,7 @@ import kotlinx.serialization.Serializable
 import org.koin.core.annotation.Singleton
 
 @Serializable
-private data class PlacesResponse(val status: String, val results: List<Place> = emptyList())
+private data class PlacesResponse(val status: String, val results: List<PlaceDto> = emptyList())
 
 @Singleton
 class PlacesRepositoryImpl(private val client: HttpClient) : PlacesRepository {
@@ -30,7 +31,7 @@ class PlacesRepositoryImpl(private val client: HttpClient) : PlacesRepository {
             }
         }.body<PlacesResponse>()
         if (response.status == "OK" || response.status == "NO_RESULTS") {
-            DataResult.Success(response.results.filter {
+            DataResult.Success(response.results.map { it.toDomain() }.filter {
                 it.latitude.isFinite() && it.longitude.isFinite() &&
                     it.latitude in -90.0..90.0 && it.longitude in -180.0..180.0
             })

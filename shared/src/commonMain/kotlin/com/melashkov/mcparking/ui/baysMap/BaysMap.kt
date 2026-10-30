@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -35,6 +36,9 @@ import com.melashkov.mcparking.permissions.rememberLocationPermissionState
 import com.melashkov.mcparking.ui.support.MapOverflowMenu
 import com.melashkov.mcparking.ui.shared.UserLocation
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -50,7 +54,8 @@ import ukmotorcycleparking.shared.generated.resources.places_search_title
 
 @Composable
 fun BaysMap(
-    uiState: MapUiState
+    uiState: MapUiState,
+    cameraDestinations: Flow<Place>,
 ) {
     ParkingBayDetailsScaffold(
         bay = uiState.selectedBay,
@@ -70,7 +75,7 @@ fun BaysMap(
             uiState.eventSink(MapUiEvent.OpenStreetView(it))
         },
     ) {
-        BaysMapContent(uiState)
+        BaysMapContent(uiState, cameraDestinations)
     }
 }
 
@@ -78,12 +83,25 @@ fun BaysMap(
 @Composable
 private fun BaysMapContent(
     uiState: MapUiState,
+    cameraDestinations: Flow<Place>,
 ) {
     val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
     var placesVisible by remember { mutableStateOf(false) }
-    var destination by remember { mutableStateOf<Place?>(null) }
-    var destinationJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    val eventSink by rememberUpdatedState(uiState.eventSink)
+
+    LaunchedEffect(cameraState, cameraDestinations) {
+        cameraDestinations.collectLatest { place ->
+            cameraState.animateTo(cameraState.position.copy(
+                target = Position(place.longitude, place.latitude),
+                zoom = place.destinationZoom(),
+            ))
+            ensureActive()
+            cameraState.currentViewport()?.let {
+                eventSink(MapUiEvent.SearchDestinationArea(it))
+            }
+        }
+    }
 
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
@@ -115,7 +133,7 @@ private fun BaysMapContent(
             baseStyle = parkingMapStyle(),
             cameraState = cameraState
         ) {
-            destination?.let { DestinationMarker(it) }
+            uiState.destination?.let { DestinationMarker(it) }
             ParkingBayMarkers(
                 markers = uiState.parkingBays,
                 onMarkerClick = {
@@ -156,19 +174,7 @@ private fun BaysMapContent(
                 onDismiss = { placesVisible = false },
                 onSelect = { place ->
                     placesVisible = false
-                    destination = place
-                    destinationJob?.cancel()
-                    uiState.eventSink(MapUiEvent.CancelSearch)
-                    uiState.eventSink(MapUiEvent.DismissBayDetails)
-                    destinationJob = coroutineScope.launch {
-                        cameraState.animateTo(cameraState.position.copy(
-                            target = Position(place.longitude, place.latitude),
-                            zoom = place.destinationZoom(),
-                        ))
-                        cameraState.currentViewport()?.let {
-                            uiState.eventSink(MapUiEvent.SearchDestinationArea(it))
-                        }
-                    }
+                    uiState.eventSink(MapUiEvent.SelectedPlace(place))
                 },
             )
         }

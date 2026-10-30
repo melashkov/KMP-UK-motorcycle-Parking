@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,61 +20,65 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import ukmotorcycleparking.shared.generated.resources.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, onDismiss: () -> Unit) {
+internal fun PlacesSearchSheet(
+    near: GeoCoordinate?,
+    onSelect: (Place) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val viewModel = koinViewModel<PlacesSearchViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // Closing or selecting removes the sheet; reset the search in one place.
+    DisposableEffect(viewModel) { onDispose { viewModel.reset() } }
+
+    PlacesSearchSheetContent(
+        state = state,
+        onQueryChange = { viewModel.search(it, near) },
+        onSearch = { viewModel.search(state.query, near, immediate = true) },
+        onSelect = onSelect,
+        onDismiss = onDismiss,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun PlacesSearchSheetContent(
+    state: PlacesSearchState,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onSelect: (Place) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val focus = remember { FocusRequester() }
     var showCredits by remember { mutableStateOf(false) }
-    var licenceLinkFailed by remember { mutableStateOf(false) }
-    val uriHandler = LocalUriHandler.current
-    val licenceUrl = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
-    val dismiss = { viewModel.reset(); onDismiss() }
-    DisposableEffect(viewModel) { onDispose { viewModel.reset() } }
-    ModalBottomSheet(onDismissRequest = dismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp).imePadding()
                 .verticalScroll(rememberScrollState()),
         ) {
             OutlinedTextField(
                 value = state.query,
-                onValueChange = { viewModel.search(it, near) },
+                onValueChange = onQueryChange,
                 label = { Text(stringResource(Res.string.places_search_hint)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { viewModel.search(state.query, near, immediate = true) }),
+                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
                 modifier = Modifier.fillMaxWidth().focusRequester(focus),
             )
             Spacer(Modifier.height(12.dp))
             if (state.loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 12.dp))
             if (state.failed) {
                 Text(stringResource(Res.string.places_search_failed), Modifier.padding(top = 12.dp))
-                TextButton(onClick = { viewModel.search(state.query, near, immediate = true) }) {
-                    Text(stringResource(Res.string.places_retry))
-                }
+                TextButton(onClick = onSearch) { Text(stringResource(Res.string.places_retry)) }
             } else if (state.searched && !state.loading && state.results.isEmpty()) {
                 Text(stringResource(Res.string.places_search_empty), Modifier.padding(top = 12.dp))
             }
             state.results.forEach { place ->
-                key(place.id) {
-                    val typeLabel = when (place.type) {
-                        "city" -> Res.string.place_type_city
-                        "town" -> Res.string.place_type_town
-                        "village", "hamlet", "settlement" -> Res.string.place_type_village
-                        "suburb" -> Res.string.place_type_area
-                        "street" -> Res.string.place_type_street
-                        "postcode" -> Res.string.place_type_postcode
-                        "station" -> Res.string.place_type_station
-                        else -> Res.string.place_type_area
-                    }
-                    ListItem(
-                        headlineContent = { Text(place.name) },
-                        supportingContent = { Text(listOf(place.subtitle, stringResource(typeLabel))
-                            .filter(String::isNotBlank).joinToString(" · ")) },
-                        modifier = Modifier.clickable { onSelect(place); viewModel.reset() },
-                    )
-                }
+                key(place.id) { PlaceSearchResult(place, onSelect) }
             }
             TextButton(
                 onClick = { showCredits = true },
@@ -84,27 +87,29 @@ internal fun PlacesSearchSheet(near: GeoCoordinate?, onSelect: (Place) -> Unit, 
                 Text(stringResource(Res.string.places_credits_compact), style = MaterialTheme.typography.labelSmall)
             }
         }
-        LaunchedEffect(Unit) { focus.requestFocus() }
+        LaunchedEffect(focus) { focus.requestFocus() }
     }
-    if (showCredits) {
-        AlertDialog(
-            onDismissRequest = { showCredits = false },
-            title = { Text(stringResource(Res.string.places_data_credits)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(Res.string.places_attribution))
-                    Text(stringResource(Res.string.places_coverage))
-                    if (licenceLinkFailed) Text(stringResource(Res.string.support_link_failed, licenceUrl))
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showCredits = false }) { Text(stringResource(Res.string.action_done)) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    licenceLinkFailed = runCatching { uriHandler.openUri(licenceUrl) }.isFailure
-                }) { Text(stringResource(Res.string.places_licence_link)) }
-            },
-        )
+    if (showCredits) PlacesDataCreditsDialog(onDismiss = { showCredits = false })
+}
+
+@Composable
+private fun PlaceSearchResult(place: Place, onSelect: (Place) -> Unit) {
+    val typeLabel = when (place.type) {
+        "city" -> Res.string.place_type_city
+        "town" -> Res.string.place_type_town
+        "village", "hamlet", "settlement" -> Res.string.place_type_village
+        "suburb" -> Res.string.place_type_area
+        "street" -> Res.string.place_type_street
+        "postcode" -> Res.string.place_type_postcode
+        "station" -> Res.string.place_type_station
+        else -> Res.string.place_type_area
     }
+    ListItem(
+        headlineContent = { Text(place.name) },
+        supportingContent = {
+            Text(listOf(place.subtitle, stringResource(typeLabel))
+                .filter(String::isNotBlank).joinToString(" · "))
+        },
+        modifier = Modifier.clickable { onSelect(place) },
+    )
 }

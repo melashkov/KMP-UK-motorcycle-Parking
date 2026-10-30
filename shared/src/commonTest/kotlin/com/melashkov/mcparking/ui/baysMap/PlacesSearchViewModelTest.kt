@@ -54,6 +54,31 @@ class PlacesSearchViewModelTest {
         assertFalse(vm.uiState.value.loading)
     }
 
+    @Test fun closingSheetDiscardsPendingSearchAndLateResponse() = runTest {
+        var requests = 0
+        val vm = PlacesSearchViewModel(object : PlacesRepository {
+            override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> =
+                withContext(NonCancellable) {
+                    requests++
+                    delay(1_000)
+                    DataResult.Success(listOf(place(query)))
+                }
+        })
+
+        vm.search("London", null)
+        vm.reset()
+        advanceUntilIdle()
+        assertEquals(0, requests)
+        assertEquals(PlacesSearchState(), vm.uiState.value)
+
+        vm.search("Oxford", null, immediate = true)
+        runCurrent()
+        assertEquals(1, requests)
+        vm.reset()
+        advanceUntilIdle()
+        assertEquals(PlacesSearchState(), vm.uiState.value)
+    }
+
     @Test fun destinationZoomKeepsParkingSearchLocalAndShowsSettlementOverview() {
         assertEquals(15.0, place("Street").copy(type = "street").destinationZoom())
         assertEquals(13.0, place("London").destinationZoom())

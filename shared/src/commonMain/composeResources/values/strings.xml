@@ -85,6 +85,7 @@
     <string name="release_search_title">Search for places</string>
     <string name="release_search_body">Find UK towns and streets, plus postcodes in Great Britain, using the search button on the map.</string>
     <string name="places_search_title">Search places</string>
+    <string name="places_clear_search">Clear search</string>
     <string name="places_search_hint">City, street or postcode</string>
     <string name="places_credits_compact">OS · OSNI · Data credits</string>
     <string name="places_data_credits">Place data</string>

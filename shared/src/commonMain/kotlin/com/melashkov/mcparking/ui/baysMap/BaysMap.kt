@@ -148,7 +148,7 @@ private fun BaysMapContent(
         }
 
         if (placeSearch.isSearchVisible) {
-            PlacesSearchSheet(
+            PlacesSearchScreen(
                 near = cameraState.position.target.toGeoCoordinate(),
                 onDismiss = placeSearch::dismissSearch,
                 onSelect = placeSearch::selectPlace,

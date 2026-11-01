@@ -24,7 +24,7 @@ internal fun EntryProviderScope<NavKey>.baysMapEntries() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
         BaysMap(
-            uiState = state
+            uiState = state,
         )
     }
 }

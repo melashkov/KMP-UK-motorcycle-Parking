@@ -24,6 +24,7 @@ import org.koin.core.annotation.KoinViewModel
 sealed interface MapUiEvent {
     data class InitialViewport(val viewport: MapViewport) : MapUiEvent
     data class ViewportChanged(val viewport: MapViewport) : MapUiEvent
+    data class SearchDestinationArea(val viewport: MapViewport) : MapUiEvent
     data object SearchCurrentArea : MapUiEvent
     data object CancelSearch : MapUiEvent
     data class AddBay(val location: GeoCoordinate) : MapUiEvent
@@ -68,6 +69,11 @@ class BaysMapViewModel(
         when (event) {
             is MapUiEvent.InitialViewport -> searchInitialArea(event.viewport)
             is MapUiEvent.ViewportChanged -> onMapViewportChanged(event.viewport)
+            is MapUiEvent.SearchDestinationArea -> {
+                cancelSearch()
+                onMapViewportChanged(event.viewport)
+                searchCurrentArea()
+            }
             MapUiEvent.SearchCurrentArea -> searchCurrentArea()
             MapUiEvent.CancelSearch -> cancelSearch()
             is MapUiEvent.AddBay -> {

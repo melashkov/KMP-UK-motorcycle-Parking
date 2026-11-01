@@ -15,6 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -95,7 +100,53 @@ internal fun ProjectInfoScreen(
                     ) { Text(stringResource(Res.string.support_ko_fi)) }
                     if (linkFailed) Text(stringResource(Res.string.support_link_failed, SupportConfig.koFiUrl))
                 }
+                if (!showReleaseNotes) {
+                    CreditText(
+                        stringResource(Res.string.developer_message_openstreetmap),
+                        mapOf("OpenStreetMap contributors" to "https://www.openstreetmap.org/copyright"),
+                    )
+                    CreditText(
+                        stringResource(Res.string.developer_message_openfreemap),
+                        mapOf(
+                            "Zsolt Ero (hyperknot)" to "https://github.com/hyperknot",
+                            "OpenFreeMap" to "https://openfreemap.org/",
+                        ),
+                    )
+                    CreditText(
+                        stringResource(Res.string.developer_message_places),
+                        mapOf(
+                            "OS Open Names" to "https://docs.os.uk/os-downloads/products/addresses-and-names-portfolio/os-open-names",
+                            "place names" to "https://admin.opendatani.gov.uk/dataset/osni-open-data-gazetteer-place-names",
+                            "street names" to "https://admin.opendatani.gov.uk/dataset/osni-opendata-gazetteer-streetnames",
+                        ),
+                    )
+                    Text(stringResource(Res.string.places_attribution), style = MaterialTheme.typography.bodySmall)
+                    val licenceLabel = stringResource(Res.string.places_licence_link)
+                    CreditText(
+                        licenceLabel,
+                        mapOf(licenceLabel to "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"),
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun CreditText(text: String, links: Map<String, String>) {
+    val linkStyle = TextLinkStyles(
+        style = SpanStyle(
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+        ),
+    )
+    Text(buildAnnotatedString {
+        append(text)
+        links.forEach { (label, url) ->
+            val start = text.indexOf(label)
+            if (start >= 0) {
+                addLink(LinkAnnotation.Url(url, linkStyle), start, start + label.length)
+            }
+        }
+    }, style = MaterialTheme.typography.bodySmall)
 }

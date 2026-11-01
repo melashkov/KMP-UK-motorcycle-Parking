@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import com.melashkov.mcparking.ui.theme.parkingMapStyle
@@ -44,10 +45,11 @@ import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
+import ukmotorcycleparking.shared.generated.resources.places_search_title
 
 @Composable
 fun BaysMap(
-    uiState: MapUiState
+    uiState: MapUiState,
 ) {
     ParkingBayDetailsScaffold(
         bay = uiState.selectedBay,
@@ -78,6 +80,7 @@ private fun BaysMapContent(
 ) {
     val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
+    val placeSearch = rememberMapPlaceSearchState(cameraState, uiState.eventSink)
 
     val locationPermission = rememberLocationPermissionState()
     var locateWhenGranted by remember { mutableStateOf(false) }
@@ -109,6 +112,7 @@ private fun BaysMapContent(
             baseStyle = parkingMapStyle(),
             cameraState = cameraState
         ) {
+            placeSearch.destination?.let { DestinationMarker(it) }
             ParkingBayMarkers(
                 markers = uiState.parkingBays,
                 onMarkerClick = {
@@ -133,6 +137,22 @@ private fun BaysMapContent(
                     locateRequest = locateRequest,
                 )
             }
+        }
+
+        SmallFloatingActionButton(
+            onClick = placeSearch::openSearch,
+            modifier = Modifier.align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp),
+        ) {
+            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.places_search_title))
+        }
+
+        if (placeSearch.isSearchVisible) {
+            PlacesSearchScreen(
+                near = cameraState.position.target.toGeoCoordinate(),
+                onDismiss = placeSearch::dismissSearch,
+                onSelect = placeSearch::selectPlace,
+            )
         }
 
         Column(
@@ -216,7 +236,7 @@ private const val ClusterZoomIncrement = 2.0
 private const val MaxClusterTapZoom = 15.0
 
 
-private fun CameraState.currentViewport(): MapViewport? {
+internal fun CameraState.currentViewport(): MapViewport? {
     val bounds = projection?.queryVisibleBoundingBox()
         ?: return null
 

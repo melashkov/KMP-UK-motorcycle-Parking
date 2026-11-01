@@ -69,6 +69,35 @@ class BaysMapViewModelTest {
     }
 
     @Test
+    fun destinationSearchReplacesPendingRequestAndLoadsNewVisibleBounds() = runTest(dispatcher) {
+        val bays = listOf(testBay(id = "destination-bay"))
+        var requests = 0
+        val repository = FakeParkingRepository(
+            searchResult = DataResult.Success(bays),
+            beforeSearch = { if (++requests == 1) kotlinx.coroutines.awaitCancellation() },
+        )
+        val viewModel = createViewModel(repository)
+        val initial = testViewport()
+        viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
+        runCurrent()
+        val destination = testViewport(
+            center = GeoCoordinate(51.752, -1.258),
+            bounds = com.melashkov.mcparking.domain.entity.GeoBounds(51.77, 51.73, -1.23, -1.29),
+        )
+
+        viewModel.uiState.value.eventSink(MapUiEvent.SearchDestinationArea(destination))
+        // The normal camera-idle observer may report the same completed move as well.
+        viewModel.uiState.value.eventSink(MapUiEvent.ViewportChanged(destination))
+        advanceUntilIdle()
+
+        assertEquals(listOf(initial.bounds, destination.bounds), repository.searchedBounds)
+        assertEquals(destination, viewModel.uiState.value.currentViewport)
+        assertEquals(bays, viewModel.uiState.value.parkingBays)
+        assertFalse(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.showSearchThisArea)
+    }
+
+    @Test
     fun movingMapShowsSearchButtonWithoutImmediatelySearching() = runTest(dispatcher) {
         val repository = FakeParkingRepository()
         val viewModel = createViewModel(repository)

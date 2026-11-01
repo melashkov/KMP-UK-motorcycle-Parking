@@ -28,6 +28,7 @@ internal fun MapOverflowMenu(
     var page by rememberSaveable {
         mutableStateOf(if (preferences.lastSeenRelease != CurrentReleaseId) "news" else "")
     }
+    var feedbackVisible by rememberSaveable { mutableStateOf(false) }
     var settingsVisible by rememberSaveable { mutableStateOf(false) }
     var menuExpanded by rememberSaveable { mutableStateOf(false) }
     val dismiss = {
@@ -50,6 +51,10 @@ internal fun MapOverflowMenu(
                 onClick = { menuExpanded = false; settingsVisible = true },
             )
             DropdownMenuItem(
+                text = { Text(stringResource(Res.string.feedback_title)) },
+                onClick = { menuExpanded = false; feedbackVisible = true },
+            )
+            DropdownMenuItem(
                 text = { Text(stringResource(Res.string.whats_new)) },
                 onClick = { menuExpanded = false; page = "news" },
             )
@@ -60,6 +65,8 @@ internal fun MapOverflowMenu(
         }
     }
 
+    if (feedbackVisible) FeedbackScreen(onDismiss = { feedbackVisible = false })
+
     if (settingsVisible) SettingsScreen(onDismiss = { settingsVisible = false })
 
     if (page.isNotEmpty()) {
@@ -67,9 +74,10 @@ internal fun MapOverflowMenu(
             showReleaseNotes = page == "news",
             onDismiss = dismiss,
             onAddBay = { dismiss(); onAddBay() },
+            onSendFeedback = { dismiss(); feedbackVisible = true },
         )
     }
 }
 
 // Change only when publishing new release notes, not for every build.
-internal const val CurrentReleaseId = "openstreetmap-redesign-1"
+internal const val CurrentReleaseId = "places-and-feedback-1"

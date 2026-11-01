@@ -5,6 +5,7 @@ import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.entity.PlaceType
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.PlacesRepository
+import com.melashkov.mcparking.domain.usecases.SearchPlacesUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -22,12 +23,12 @@ class PlacesSearchViewModelTest {
 
     @Test fun onlyLatestQueryIsSentAfterDebounce() = runTest {
         val requests = mutableListOf<String>()
-        val vm = PlacesSearchViewModel(object : PlacesRepository {
+        val vm = PlacesSearchViewModel(SearchPlacesUseCase(object : PlacesRepository {
             override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> {
                 requests += query
                 return DataResult.Success(listOf(place(query)))
             }
-        })
+        }))
         vm.search("Lo", null)
         vm.search("Lon", null)
         advanceTimeBy(200)
@@ -40,13 +41,13 @@ class PlacesSearchViewModelTest {
     }
 
     @Test fun lateCancelledResponseCannotReplaceNewResults() = runTest {
-        val vm = PlacesSearchViewModel(object : PlacesRepository {
+        val vm = PlacesSearchViewModel(SearchPlacesUseCase(object : PlacesRepository {
             override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> =
                 withContext(NonCancellable) {
                     if (query == "Oxford") delay(1_000)
                     DataResult.Success(listOf(place(query)))
                 }
-        })
+        }))
         vm.search("Oxford", null, immediate = true)
         runCurrent()
         vm.search("London", null, immediate = true)
@@ -57,14 +58,14 @@ class PlacesSearchViewModelTest {
 
     @Test fun closingSheetDiscardsPendingSearchAndLateResponse() = runTest {
         var requests = 0
-        val vm = PlacesSearchViewModel(object : PlacesRepository {
+        val vm = PlacesSearchViewModel(SearchPlacesUseCase(object : PlacesRepository {
             override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> =
                 withContext(NonCancellable) {
                     requests++
                     delay(1_000)
                     DataResult.Success(listOf(place(query)))
                 }
-        })
+        }))
 
         vm.search("London", null)
         vm.reset()
@@ -78,6 +79,27 @@ class PlacesSearchViewModelTest {
         vm.reset()
         advanceUntilIdle()
         assertEquals(PlacesSearchState(), vm.uiState.value)
+    }
+
+    @Test fun keepsTypedQueryWhileNormalizingRequestAndClearsShortQueries() = runTest {
+        val requests = mutableListOf<String>()
+        val vm = PlacesSearchViewModel(SearchPlacesUseCase(object : PlacesRepository {
+            override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> {
+                requests += query
+                return DataResult.Success(listOf(place(query)))
+            }
+        }))
+        val typedQuery = "  " + "a".repeat(81) + "  "
+        vm.search(typedQuery, null, immediate = true)
+        assertEquals(typedQuery, vm.uiState.value.query)
+        advanceUntilIdle()
+        assertEquals(listOf("a".repeat(80)), requests)
+        assertTrue(vm.uiState.value.searched)
+
+        vm.search("  Lo  ", null, immediate = true)
+        advanceUntilIdle()
+        assertEquals(1, requests.size)
+        assertEquals(PlacesSearchState(query = "  Lo  "), vm.uiState.value)
     }
 
     @Test fun destinationZoomKeepsParkingSearchLocalAndShowsSettlementOverview() {

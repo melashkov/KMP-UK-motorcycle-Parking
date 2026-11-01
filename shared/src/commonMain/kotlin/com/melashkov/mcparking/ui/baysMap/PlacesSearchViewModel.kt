@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.Place
-import com.melashkov.mcparking.domain.interfaces.DataResult
-import com.melashkov.mcparking.domain.interfaces.PlacesRepository
+import com.melashkov.mcparking.domain.usecases.SearchPlacesResult
+import com.melashkov.mcparking.domain.usecases.SearchPlacesUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -24,7 +24,7 @@ data class PlacesSearchState(
 )
 
 @KoinViewModel
-class PlacesSearchViewModel(private val repository: PlacesRepository) : ViewModel() {
+class PlacesSearchViewModel(private val searchPlaces: SearchPlacesUseCase) : ViewModel() {
     private val searchDebounce = 700.milliseconds
 
     private val state = MutableStateFlow(PlacesSearchState())
@@ -33,17 +33,16 @@ class PlacesSearchViewModel(private val repository: PlacesRepository) : ViewMode
 
     fun search(query: String, near: GeoCoordinate?, immediate: Boolean = false) {
         job?.cancel()
-        val trimmed = query.trim().take(80)
-        state.value = PlacesSearchState(query = query.take(80))
-        if (trimmed.length < 3) return
+        state.value = PlacesSearchState(query = query)
         job = viewModelScope.launch {
             if (!immediate) delay(searchDebounce)
             state.value = state.value.copy(loading = true)
-            val result = repository.search(trimmed, near)
+            val result = searchPlaces(query, near)
             ensureActive()
             state.value = when (result) {
-                is DataResult.Success -> state.value.copy(results = result.value, loading = false, searched = true)
-                is DataResult.Failure -> state.value.copy(failed = true, loading = false, searched = true)
+                SearchPlacesResult.QueryTooShort -> state.value.copy(loading = false)
+                is SearchPlacesResult.Success -> state.value.copy(results = result.places, loading = false, searched = true)
+                is SearchPlacesResult.Failure -> state.value.copy(failed = true, loading = false, searched = true)
             }
         }
     }

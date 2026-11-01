@@ -79,7 +79,7 @@
     <string name="action_continue_to_map">Continue to map</string>
     <string name="action_add_parking_bay">Add parking bay</string>
     <string name="whats_new">What’s new</string>
-    <string name="release_title">A fresh look for UK Motorcycle Parking</string>
+    <string name="release_title">Search places has been added</string>
     <string name="release_map_title">A new map</string>
     <string name="release_map_body">Rebuilt with OpenStreetMap as Google’s mapping costs changed. The same community parking data is still here.</string>
     <string name="release_search_title">Search for places</string>
@@ -107,4 +107,21 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_title">Settings</string>
+    <string name="release_feedback_title">Get in touch</string>
+    <string name="release_feedback_body">Feel free to share feedback.</string>
+    <string name="feedback_title">Send feedback</string>
+    <string name="feedback_intro">Found a problem, have an idea, or want to tell us what works well? Leave a message for the developer.</string>
+    <string name="feedback_message">Your message</string>
+    <string name="feedback_email">Reply email (optional)</string>
+    <string name="feedback_length">%1$d / 1500 characters · minimum 5</string>
+    <string name="feedback_privacy">Your message and optional email are sent to the developer. Leave out any sensitive information.</string>
+    <string name="feedback_send">Send message</string>
+    <string name="feedback_send_error_title">Your message wasn’t sent</string>
+    <string name="feedback_sending">Sending…</string>
+    <string name="feedback_thanks">Thanks for your feedback</string>
+    <string name="feedback_sent">Your message has been sent to the developer.</string>
+    <string name="feedback_discard_title">Discard this message?</string>
+    <string name="feedback_discard">Discard</string>
+    <string name="feedback_keep">Keep writing</string>
+    <string name="feedback_email_invalid">Enter a valid email address, or leave it blank.</string>
 </resources>

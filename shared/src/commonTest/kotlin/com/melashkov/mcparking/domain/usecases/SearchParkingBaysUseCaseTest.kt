@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.domain.usecases
 
-import com.melashkov.mcparking.FakeParkingRepository
+import com.melashkov.mcparking.FakeParkingSearchRepository
 import com.melashkov.mcparking.TestBounds
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class SearchParkingBaysUseCaseTest {
     @Test
     fun belowMinimumZoomDoesNotCallRepository() = runTest {
-        val repository = FakeParkingRepository()
+        val repository = FakeParkingSearchRepository()
         val useCase = SearchParkingBaysUseCase(repository)
 
         val result = useCase(testViewport(zoom = 12.99))
@@ -27,7 +27,7 @@ class SearchParkingBaysUseCaseTest {
     @Test
     fun minimumZoomSearchesExactViewportBounds() = runTest {
         val bays = listOf(testBay())
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Success(bays),
         )
         val useCase = SearchParkingBaysUseCase(repository)
@@ -40,7 +40,7 @@ class SearchParkingBaysUseCaseTest {
 
     @Test
     fun repositoryFailureIsPreserved() = runTest {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Failure(AppError.ConnectionFailed),
         )
 

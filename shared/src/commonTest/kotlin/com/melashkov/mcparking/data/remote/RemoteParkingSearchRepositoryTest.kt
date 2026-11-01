@@ -1,29 +1,28 @@
 package com.melashkov.mcparking.data.remote
 
 import com.melashkov.mcparking.TestBounds
-import com.melashkov.mcparking.data.remote.dto.ParkingReportRequestDto
+import com.melashkov.mcparking.domain.entity.ParkingBay
+import com.melashkov.mcparking.domain.interfaces.AppError
+import com.melashkov.mcparking.domain.interfaces.DataResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 
-class ParkingRemoteDataSourceTest {
+class RemoteParkingSearchRepositoryTest {
     @Test
     fun boundsRequestSendsEveryCoordinateAndDecodesResponse() = runTest {
         val engine = MockEngine { request ->
@@ -42,45 +41,11 @@ class ParkingRemoteDataSourceTest {
         val client = testClient(engine)
 
         try {
-            val response = ParkingRemoteDataSource(client).getParkingBays(TestBounds)
+            val response = RemoteParkingSearchRepository(client).getParkingBays(TestBounds)
 
-            assertEquals("OK", response.status)
-            assertEquals(1, response.results.size)
-            assertEquals("Waterloo Road", response.results.single().title)
-        } finally {
-            client.close()
-        }
-    }
-
-    @Test
-    fun reportRequestMatchesExistingPhpContract() = runTest {
-        val json = Json { ignoreUnknownKeys = true }
-        val expected = ParkingReportRequestDto(
-            title = "Waterloo Road",
-            description = "Six spaces",
-            type = 2,
-            latitude = 51.5074,
-            longitude = -0.1278,
-            parentId = "42",
-        )
-        val engine = MockEngine { request ->
-            assertNull(request.headers[HttpHeaders.Authorization])
-            assertEquals(HttpMethod.Post, request.method)
-            assertEquals("/api/report.php", request.url.encodedPath)
-            assertEquals(ContentType.Application.Json, request.body.contentType)
-            val body = assertIs<TextContent>(request.body).text
-            assertEquals(expected, json.decodeFromString<ParkingReportRequestDto>(body))
-            respond(
-                content = """{"status":"OK"}""",
-                headers = JsonHeaders,
-            )
-        }
-        val client = testClient(engine)
-
-        try {
-            val response = ParkingRemoteDataSource(client).submitParkingBay(expected)
-
-            assertEquals("OK", response.status)
+            val bays = assertIs<DataResult.Success<List<ParkingBay>>>(response).value
+            assertEquals(1, bays.size)
+            assertEquals("Waterloo Road", bays.single().title)
         } finally {
             client.close()
         }
@@ -100,9 +65,10 @@ class ParkingRemoteDataSourceTest {
             )
         })
         try {
-            assertFailsWith<ClientRequestException> {
-                ParkingRemoteDataSource(client).getParkingBays(TestBounds)
-            }
+            assertEquals(
+                DataResult.Failure(AppError.RateLimited),
+                RemoteParkingSearchRepository(client).getParkingBays(TestBounds),
+            )
             assertEquals(1, requests)
         } finally {
             client.close()

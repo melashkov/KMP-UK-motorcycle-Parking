@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.ui.bayEditor
 
-import com.melashkov.mcparking.FakeParkingRepository
+import com.melashkov.mcparking.FakeParkingSubmissionRepository
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
@@ -8,6 +8,13 @@ import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.usecases.SubmitParkingBayUseCase
 import com.melashkov.mcparking.ui.navigation.AppNavigationSink
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,13 +23,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BayEditorViewModelTest {
@@ -41,7 +41,7 @@ class BayEditorViewModelTest {
 
     @Test
     fun successfulSubmissionUsesTheDraftProvidedByTheScreen() = runTest(dispatcher) {
-        val repository = FakeParkingRepository()
+        val repository = FakeParkingSubmissionRepository()
         val viewModel = createViewModel(repository)
         val submission = validSubmission()
 
@@ -55,7 +55,7 @@ class BayEditorViewModelTest {
 
     @Test
     fun failedSubmissionShowsUsefulErrorAndCanBeRetried() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSubmissionRepository(
             submissionResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
@@ -78,7 +78,7 @@ class BayEditorViewModelTest {
 
     @Test
     fun changingDraftClearsPreviousSubmissionError() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSubmissionRepository(
             submissionResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
@@ -90,7 +90,7 @@ class BayEditorViewModelTest {
         assertNull(viewModel.uiState.value.submissionError)
     }
 
-    private fun createViewModel(repository: FakeParkingRepository) =
+    private fun createViewModel(repository: FakeParkingSubmissionRepository) =
         BayEditorViewModel(
             submitParkingBay = SubmitParkingBayUseCase(repository),
             appNavigationSink = AppNavigationSink(),

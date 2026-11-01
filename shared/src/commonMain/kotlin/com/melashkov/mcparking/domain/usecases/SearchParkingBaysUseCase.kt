@@ -4,12 +4,12 @@ import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
-import com.melashkov.mcparking.domain.interfaces.ParkingRepository
+import com.melashkov.mcparking.domain.interfaces.ParkingSearchRepository
 import org.koin.core.annotation.Singleton
 
 @Singleton
 class SearchParkingBaysUseCase(
-    private val repository: ParkingRepository,
+    private val repository: ParkingSearchRepository,
 ) {
     suspend operator fun invoke(
         viewport: MapViewport,

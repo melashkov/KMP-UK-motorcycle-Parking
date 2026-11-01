@@ -32,6 +32,7 @@ internal fun ProjectInfoScreen(
     showReleaseNotes: Boolean,
     onDismiss: () -> Unit,
     onAddBay: () -> Unit,
+    onSendFeedback: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
     var linkFailed by remember { mutableStateOf(false) }
@@ -74,10 +75,8 @@ internal fun ProjectInfoScreen(
             ) {
                 if (showReleaseNotes) {
                     Text(stringResource(Res.string.release_title), style = MaterialTheme.typography.headlineMedium)
-                    Text(stringResource(Res.string.release_map_title), style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(Res.string.release_map_body))
-                    Text(stringResource(Res.string.release_search_title), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(Res.string.release_search_body))
+                    Text(stringResource(Res.string.release_feedback_body))
                 } else {
                     Text(stringResource(Res.string.developer_message_history))
                     Text(stringResource(Res.string.developer_message_thanks))
@@ -85,6 +84,9 @@ internal fun ProjectInfoScreen(
                     OutlinedButton(onClick = onAddBay, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(Res.string.action_add_parking_bay))
                     }
+                }
+                OutlinedButton(onClick = onSendFeedback, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(Res.string.feedback_title))
                 }
                 if (SupportConfig.koFiUrl.isNotBlank()) {
                     Text(stringResource(Res.string.support_ko_fi_description))

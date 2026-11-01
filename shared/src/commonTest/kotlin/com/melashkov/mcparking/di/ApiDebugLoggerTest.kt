@@ -1,7 +1,9 @@
 package com.melashkov.mcparking.di
 
+import com.melashkov.mcparking.domain.interfaces.AppError
+import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.TestBounds
-import com.melashkov.mcparking.data.remote.ParkingRemoteDataSource
+import com.melashkov.mcparking.data.remote.RemoteParkingSearchRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -15,7 +17,6 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -54,7 +55,7 @@ class ApiDebugLoggerTest {
             defaultRequest { url("https://melashkov.com/api/") }
         }
         try {
-            assertFailsWith<Exception> { ParkingRemoteDataSource(client).getParkingBays(TestBounds) }
+            assertEquals(DataResult.Failure(AppError.Unknown), RemoteParkingSearchRepository(client).getParkingBays(TestBounds))
             val text = messages.joinToString()
             assertTrue(text.contains("REQUEST: https://melashkov.com/api/bounds.php"))
             assertTrue(text.contains("RESPONSE: 200"))

@@ -8,10 +8,12 @@ import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.PlacesRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 data class PlacesSearchState(
     val query: String = "",
@@ -23,22 +25,22 @@ data class PlacesSearchState(
 
 @KoinViewModel
 class PlacesSearchViewModel(private val repository: PlacesRepository) : ViewModel() {
+    private val searchDebounce = 700.milliseconds
+
     private val state = MutableStateFlow(PlacesSearchState())
     val uiState = state.asStateFlow()
     private var job: Job? = null
-    private var generation = 0
 
     fun search(query: String, near: GeoCoordinate?, immediate: Boolean = false) {
         job?.cancel()
-        val request = ++generation
         val trimmed = query.trim().take(80)
         state.value = PlacesSearchState(query = query.take(80))
         if (trimmed.length < 3) return
         job = viewModelScope.launch {
-            if (!immediate) delay(350)
+            if (!immediate) delay(searchDebounce)
             state.value = state.value.copy(loading = true)
             val result = repository.search(trimmed, near)
-            if (request != generation) return@launch
+            ensureActive()
             state.value = when (result) {
                 is DataResult.Success -> state.value.copy(results = result.value, loading = false, searched = true)
                 is DataResult.Failure -> state.value.copy(failed = true, loading = false, searched = true)
@@ -47,7 +49,6 @@ class PlacesSearchViewModel(private val repository: PlacesRepository) : ViewMode
     }
 
     fun reset() {
-        ++generation
         job?.cancel()
         state.value = PlacesSearchState()
     }

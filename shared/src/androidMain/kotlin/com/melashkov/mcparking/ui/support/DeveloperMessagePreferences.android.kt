@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 
 @Composable
 internal actual fun rememberDeveloperMessagePreferences(): DeveloperMessagePreferences {
@@ -13,7 +14,7 @@ internal actual fun rememberDeveloperMessagePreferences(): DeveloperMessagePrefe
         object : DeveloperMessagePreferences {
             override var lastSeenRelease: String
                 get() = preferences.getString("last_seen_release", "").orEmpty()
-                set(value) { preferences.edit().putString("last_seen_release", value).apply() }
+                set(value) { preferences.edit { putString("last_seen_release", value) } }
         }
     }
 }

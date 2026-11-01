@@ -1,4 +1,4 @@
-package com.melashkov.mcparking.data
+package com.melashkov.mcparking.data.remote
 
 import com.melashkov.mcparking.data.remote.dto.FeedbackRequestDto
 import com.melashkov.mcparking.data.remote.dto.FeedbackResponseDto
@@ -18,7 +18,7 @@ import kotlinx.io.IOException
 import org.koin.core.annotation.Singleton
 
 @Singleton
-class FeedbackRepositoryImpl(private val client: HttpClient) : FeedbackRepository {
+class RemoteFeedbackRepository(private val client: HttpClient) : FeedbackRepository {
     override suspend fun send(message: String, email: String): DataResult<Unit> = try {
         val response = client.post("feedback.php") {
             contentType(ContentType.Application.Json)

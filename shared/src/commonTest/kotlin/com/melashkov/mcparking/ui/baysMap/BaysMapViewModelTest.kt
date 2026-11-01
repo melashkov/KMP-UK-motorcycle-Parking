@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.ui.baysMap
 
-import com.melashkov.mcparking.FakeParkingRepository
+import com.melashkov.mcparking.FakeParkingSearchRepository
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.domain.interfaces.AppError
@@ -51,7 +51,7 @@ class BaysMapViewModelTest {
     @Test
     fun initialViewportAutomaticallyLoadsBays() = runTest(dispatcher) {
         val bays = listOf(testBay(), testBay(id = "43", type = ParkingType.PAY))
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Success(bays),
         )
         val viewModel = createViewModel(repository)
@@ -72,7 +72,7 @@ class BaysMapViewModelTest {
     fun destinationSearchReplacesPendingRequestAndLoadsNewVisibleBounds() = runTest(dispatcher) {
         val bays = listOf(testBay(id = "destination-bay"))
         var requests = 0
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Success(bays),
             beforeSearch = { if (++requests == 1) kotlinx.coroutines.awaitCancellation() },
         )
@@ -99,7 +99,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun movingMapShowsSearchButtonWithoutImmediatelySearching() = runTest(dispatcher) {
-        val repository = FakeParkingRepository()
+        val repository = FakeParkingSearchRepository()
         val viewModel = createViewModel(repository)
         val initial = testViewport()
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
@@ -114,7 +114,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun searchButtonRemainsVisibleUntilMovedAreaIsSearched() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
+        val viewModel = createViewModel(FakeParkingSearchRepository())
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
         advanceUntilIdle()
         val moved = testViewport(center = GeoCoordinate(51.51, -0.12))
@@ -127,7 +127,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun movingDuringRequestKeepsSearchButtonForNewArea() = runTest(dispatcher) {
-        val repository = FakeParkingRepository()
+        val repository = FakeParkingSearchRepository()
         val viewModel = createViewModel(repository)
         val initial = testViewport()
         val moved = testViewport(center = GeoCoordinate(51.51, -0.12))
@@ -146,7 +146,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun emptySearchShowsDismissibleMessage() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
+        val viewModel = createViewModel(FakeParkingSearchRepository())
 
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(testViewport()))
         advanceUntilIdle()
@@ -161,7 +161,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun movingMapAndStartingSearchClearEmptyMessage() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
+        val viewModel = createViewModel(FakeParkingSearchRepository())
         val initial = testViewport()
         viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
         advanceUntilIdle()
@@ -192,7 +192,7 @@ class BaysMapViewModelTest {
             initial to false,
         )) {
             val bays = listOf(testBay())
-            val repository = FakeParkingRepository(searchResult = DataResult.Success(bays))
+            val repository = FakeParkingSearchRepository(searchResult = DataResult.Success(bays))
             val viewModel = createViewModel(repository)
             viewModel.uiState.value.eventSink(MapUiEvent.InitialViewport(initial))
             advanceUntilIdle()
@@ -238,7 +238,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun failedSearchExposesDomainError() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
@@ -253,7 +253,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun dismissingSearchErrorKeepsSearchActionAvailable() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Failure(AppError.ServerUnavailable),
         )
         val viewModel = createViewModel(repository)
@@ -268,7 +268,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun movingMapClearsStaleSearchError() = runTest(dispatcher) {
-        val repository = FakeParkingRepository(
+        val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Failure(AppError.ConnectionFailed),
         )
         val viewModel = createViewModel(repository)
@@ -287,7 +287,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun areaTooLargeIsExposedAsZoomGuidanceNotAnAppError() = runTest(dispatcher) {
-        val viewModel = createViewModel(FakeParkingRepository())
+        val viewModel = createViewModel(FakeParkingSearchRepository())
 
         viewModel.uiState.value.eventSink(
             MapUiEvent.InitialViewport(testViewport().copy(zoom = 12.0)),
@@ -301,7 +301,7 @@ class BaysMapViewModelTest {
 
     @Test
     fun selectingAndDismissingBayUpdatesSheetState() {
-        val viewModel = createViewModel(FakeParkingRepository())
+        val viewModel = createViewModel(FakeParkingSearchRepository())
         val bay = testBay()
 
         viewModel.uiState.value.eventSink(MapUiEvent.SelectedBay(bay))
@@ -315,7 +315,7 @@ class BaysMapViewModelTest {
     fun addBayNavigationCarriesSelectedMapLocation() = runTest(dispatcher) {
         val navigation = AppNavigationSink()
         val viewModel = createViewModel(
-            repository = FakeParkingRepository(),
+            repository = FakeParkingSearchRepository(),
             navigation = navigation,
         )
         val location = GeoCoordinate(51.50, -0.11)
@@ -333,7 +333,7 @@ class BaysMapViewModelTest {
     fun suggestEditNavigationCarriesCompleteBaySnapshot() = runTest(dispatcher) {
         val navigation = AppNavigationSink()
         val viewModel = createViewModel(
-            repository = FakeParkingRepository(),
+            repository = FakeParkingSearchRepository(),
             navigation = navigation,
         )
         val bay = testBay(type = ParkingType.PERMIT)
@@ -352,7 +352,7 @@ class BaysMapViewModelTest {
     }
 
     private fun createViewModel(
-        repository: FakeParkingRepository,
+        repository: FakeParkingSearchRepository,
         navigation: AppNavigationSink = AppNavigationSink(),
     ) = BaysMapViewModel(
         searchParkingBays = SearchParkingBaysUseCase(repository),

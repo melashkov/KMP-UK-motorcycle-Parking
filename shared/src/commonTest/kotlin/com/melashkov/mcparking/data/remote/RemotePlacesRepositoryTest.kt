@@ -1,4 +1,5 @@
-package com.melashkov.mcparking.data
+package com.melashkov.mcparking.data.remote
+
 
 import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.entity.PlaceType
@@ -16,7 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-class PlacesRepositoryImplTest {
+class RemotePlacesRepositoryTest {
     @Test fun unknownApiTypeDoesNotDiscardSearchResults() = runTest {
         val engine = MockEngine {
             respond(
@@ -32,7 +33,7 @@ class PlacesRepositoryImplTest {
             defaultRequest { url("https://parking.test/api/") }
         }
         try {
-            val result = assertIs<DataResult.Success<List<Place>>>(PlacesRepositoryImpl(client).search("Leeds", null))
+            val result = assertIs<DataResult.Success<List<Place>>>(RemotePlacesRepository(client).search("Leeds", null))
             assertEquals(listOf(PlaceType.CITY, PlaceType.UNKNOWN), result.value.map { it.type })
             assertEquals(listOf("Leeds", "New place"), result.value.map { it.name })
             assertEquals(53.8, result.value.first().latitude)

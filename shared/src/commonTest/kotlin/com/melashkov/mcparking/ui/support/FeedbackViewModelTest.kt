@@ -4,11 +4,11 @@ import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.FeedbackRepository
 import com.melashkov.mcparking.domain.usecases.SendFeedbackUseCase
+import kotlin.test.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.*
-import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeedbackViewModelTest {

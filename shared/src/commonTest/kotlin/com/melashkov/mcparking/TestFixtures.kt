@@ -7,25 +7,28 @@ import com.melashkov.mcparking.domain.entity.ParkingBay
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.domain.interfaces.DataResult
-import com.melashkov.mcparking.domain.interfaces.ParkingRepository
+import com.melashkov.mcparking.domain.interfaces.ParkingSearchRepository
+import com.melashkov.mcparking.domain.interfaces.ParkingSubmissionRepository
 
-internal class FakeParkingRepository(
+internal class FakeParkingSearchRepository(
     var searchResult: DataResult<List<ParkingBay>> = DataResult.Success(emptyList()),
-    var submissionResult: DataResult<Unit> = DataResult.Success(Unit),
     var beforeSearch: suspend () -> Unit = {},
-) : ParkingRepository {
+) : ParkingSearchRepository {
     val searchedBounds = mutableListOf<GeoBounds>()
-    val submissions = mutableListOf<ParkingBaySubmission>()
 
     override suspend fun getParkingBays(bounds: GeoBounds): DataResult<List<ParkingBay>> {
         searchedBounds += bounds
         beforeSearch()
         return searchResult
     }
+}
 
-    override suspend fun submitParkingBay(
-        submission: ParkingBaySubmission,
-    ): DataResult<Unit> {
+internal class FakeParkingSubmissionRepository(
+    var submissionResult: DataResult<Unit> = DataResult.Success(Unit),
+) : ParkingSubmissionRepository {
+    val submissions = mutableListOf<ParkingBaySubmission>()
+
+    override suspend fun submitParkingBay(submission: ParkingBaySubmission): DataResult<Unit> {
         submissions += submission
         return submissionResult
     }

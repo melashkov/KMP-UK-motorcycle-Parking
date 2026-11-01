@@ -1,4 +1,4 @@
-package com.melashkov.mcparking.data
+package com.melashkov.mcparking.data.remote
 
 import com.melashkov.mcparking.domain.interfaces.*
 import io.ktor.client.HttpClient
@@ -8,11 +8,11 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.*
 import io.ktor.http.content.TextContent
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.test.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*
-import kotlin.test.*
 
-class FeedbackRepositoryImplTest {
+class RemoteFeedbackRepositoryTest {
     @Test fun sendsJsonAndRequiresConfirmedSuccess() = runTest {
         val engine = MockEngine { request ->
             assertEquals(HttpMethod.Post, request.method)
@@ -23,7 +23,7 @@ class FeedbackRepositoryImplTest {
             respond("""{"status":"OK"}""", headers = headersOf(HttpHeaders.ContentType, "application/json"))
         }
         client(engine).use { client ->
-            assertIs<DataResult.Success<Unit>>(FeedbackRepositoryImpl(client).send("A useful idea", "me@example.org"))
+            assertIs<DataResult.Success<Unit>>(RemoteFeedbackRepository(client).send("A useful idea", "me@example.org"))
         }
     }
 
@@ -34,7 +34,7 @@ class FeedbackRepositoryImplTest {
             Triple(HttpStatusCode.OK, """{"status":"ERROR"}""", AppError.ServerUnavailable),
         )) {
             client(MockEngine { respond(body, status, headersOf(HttpHeaders.ContentType, "application/json")) }).use { client ->
-                assertEquals(DataResult.Failure(error), FeedbackRepositoryImpl(client).send("A useful idea", ""))
+                assertEquals(DataResult.Failure(error), RemoteFeedbackRepository(client).send("A useful idea", ""))
             }
         }
     }

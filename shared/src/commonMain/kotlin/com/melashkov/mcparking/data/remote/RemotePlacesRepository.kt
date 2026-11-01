@@ -1,6 +1,6 @@
-package com.melashkov.mcparking.data
+package com.melashkov.mcparking.data.remote
 
-import com.melashkov.mcparking.data.remote.dto.PlaceDto
+import com.melashkov.mcparking.data.remote.dto.PlacesResponseDto
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.Place
 import com.melashkov.mcparking.domain.interfaces.AppError
@@ -14,14 +14,10 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
-import kotlinx.serialization.Serializable
 import org.koin.core.annotation.Singleton
 
-@Serializable
-private data class PlacesResponse(val status: String, val results: List<PlaceDto> = emptyList())
-
 @Singleton
-class PlacesRepositoryImpl(private val client: HttpClient) : PlacesRepository {
+class RemotePlacesRepository(private val client: HttpClient) : PlacesRepository {
     override suspend fun search(query: String, near: GeoCoordinate?): DataResult<List<Place>> = try {
         val response = client.get("places.php") {
             parameter("q", query)
@@ -29,7 +25,7 @@ class PlacesRepositoryImpl(private val client: HttpClient) : PlacesRepository {
                 parameter("latitude", it.latitude)
                 parameter("longitude", it.longitude)
             }
-        }.body<PlacesResponse>()
+        }.body<PlacesResponseDto>()
         if (response.status == "OK" || response.status == "NO_RESULTS") {
             DataResult.Success(response.results.map { it.toDomain() }.filter {
                 it.latitude.isFinite() && it.longitude.isFinite() &&

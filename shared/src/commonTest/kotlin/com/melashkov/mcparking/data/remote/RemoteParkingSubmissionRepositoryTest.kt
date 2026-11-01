@@ -1,6 +1,6 @@
-package com.melashkov.mcparking.data
+package com.melashkov.mcparking.data.remote
 
-import com.melashkov.mcparking.data.remote.ParkingRemoteDataSource
+import com.melashkov.mcparking.data.remote.dto.ParkingReportRequestDto
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
@@ -13,19 +13,68 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.test.runTest
-import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.IOException
+import kotlinx.serialization.json.Json
 
-class ParkingRepositoryImplTest {
+class RemoteParkingSubmissionRepositoryTest {
+    @Test
+    fun reportRequestMatchesExistingPhpContract() = runTest {
+        val json = Json { ignoreUnknownKeys = true }
+        val expected = ParkingReportRequestDto(
+            title = "Waterloo Road",
+            description = "Six spaces",
+            type = 2,
+            latitude = 51.5074,
+            longitude = -0.1278,
+            parentId = "42",
+        )
+        val engine = MockEngine { request ->
+            assertNull(request.headers[HttpHeaders.Authorization])
+            assertEquals(HttpMethod.Post, request.method)
+            assertEquals("/api/report.php", request.url.encodedPath)
+            assertEquals(ContentType.Application.Json, request.body.contentType)
+            val body = assertIs<TextContent>(request.body).text
+            assertEquals(expected, json.decodeFromString<ParkingReportRequestDto>(body))
+            respond(
+                content = """{"status":"OK"}""",
+                headers = JsonHeaders,
+            )
+        }
+        val client = HttpClient(engine) {
+            expectSuccess = true
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+            defaultRequest { url("https://parking.test/api/") }
+        }
+
+        try {
+            val submission = ParkingBaySubmission(
+                parentId = "42",
+                title = "Waterloo Road",
+                description = "Six spaces",
+                type = ParkingType.fromInt(2),
+                position = GeoCoordinate(51.5074, -0.1278),
+            )
+            val response = RemoteParkingSubmissionRepository(client).submitParkingBay(submission)
+
+            assertEquals(DataResult.Success(Unit), response)
+        } finally {
+            client.close()
+        }
+    }
+
+
     @Test
     fun successfulApiStatusReturnsSuccess() = runTest {
         val fixture = repositoryResponding(
@@ -125,7 +174,7 @@ class ParkingRepositoryImplTest {
             install(ContentNegotiation) { json() }
             defaultRequest { url("https://parking.test/api/") }
         }
-        val repository = ParkingRepositoryImpl(ParkingRemoteDataSource(client))
+        val repository = RemoteParkingSubmissionRepository(client)
 
         try {
             assertEquals(
@@ -166,7 +215,7 @@ class ParkingRepositoryImplTest {
             install(ContentNegotiation) { json() }
             defaultRequest { url("https://parking.test/api/") }
         }
-        val repository = ParkingRepositoryImpl(ParkingRemoteDataSource(client))
+        val repository = RemoteParkingSubmissionRepository(client)
 
         try {
             assertFailsWith<CancellationException> {
@@ -197,7 +246,7 @@ class ParkingRepositoryImplTest {
             defaultRequest { url("https://parking.test/api/") }
         }
         return RepositoryFixture(
-            repository = ParkingRepositoryImpl(ParkingRemoteDataSource(client)),
+            repository = RemoteParkingSubmissionRepository(client),
             client = client,
         )
     }
@@ -218,7 +267,7 @@ class ParkingRepositoryImplTest {
     }
 
     private data class RepositoryFixture(
-        val repository: ParkingRepositoryImpl,
+        val repository: RemoteParkingSubmissionRepository,
         val client: HttpClient,
     ) {
         fun close() = client.close()

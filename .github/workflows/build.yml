@@ -32,6 +32,9 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Test native symbol preparation
+        run: python3 -m unittest discover -s scripts/tests -v
+
       - name: Run shared tests on Android
         run: ./gradlew :shared:testAndroidHostTest --stacktrace
 
@@ -58,8 +61,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 45
     env:
-      # spmForKmp expects the SwiftPM module layout from Xcode 26.
-      # macos-15 defaults to Xcode 16.4, which omits the expected bridge module.
+      # Keep CI on the Xcode version used for the shared iOS framework.
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - name: Checkout

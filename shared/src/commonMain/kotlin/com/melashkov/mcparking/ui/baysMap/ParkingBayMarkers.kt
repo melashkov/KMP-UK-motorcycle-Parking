@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import com.melashkov.mcparking.domain.entity.ParkingBay
 import kotlinx.collections.immutable.ImmutableList
 import org.maplibre.compose.sources.GeoJsonData
-import org.maplibre.compose.sources.GeoJsonOptions
 import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.util.MaplibreComposable
 import org.maplibre.spatialk.geojson.Position
@@ -31,13 +30,12 @@ fun ParkingBayMarkers(
 
     val markersSource = rememberGeoJsonSource(
         data = geoJsonData,
-        options = GeoJsonOptions(
-            cluster = true,
-            clusterMinPoints = 2,
-            clusterRadius = 40,
-            clusterMaxZoom = 14,
-        ),
-    )
+    ) {
+        cluster = true
+        clusterMinPoints = 2
+        clusterRadius = 40
+        clusterMaxZoom = 14
+    }
 
     ParkingBayMarkerLayers(
         markers = markers,

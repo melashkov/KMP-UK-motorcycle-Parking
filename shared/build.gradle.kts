@@ -1,7 +1,4 @@
-import io.github.frankois944.spmForKmp.swiftPackageConfig
-import org.gradle.api.tasks.Sync
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,7 +6,6 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.spmForKmp) // Add this
     alias(libs.plugins.koin.compiler)
 }
 
@@ -18,21 +14,9 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        iosTarget.swiftPackageConfig {
-            // Keep the Swift package deployment target aligned with the Xcode app.
-            minIos = "18.2"
-            dependency {
-                remotePackageVersion(
-                    url = URI("https://github.com/maplibre/maplibre-gl-native-distribution.git"),
-                    products = { add("MapLibre", exportToKotlin = true) },
-                    packageName = "maplibre-gl-native-distribution",
-                    version = "6.25.1",
-                )
-            }
-        }
-
         iosTarget.binaries.framework {
             baseName = "Shared"
+            binaryOption("bundleId", "com.melashkov.mcparking.shared")
             isStatic = true
         }
     }
@@ -60,6 +44,7 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            runtimeOnly(libs.maplibre.runtime.android)
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
@@ -94,30 +79,14 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.junit)
+            implementation(libs.robolectric)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
         }
     }
-}
-
-val copyMapLibreFrameworkForIosSimulatorTests = tasks.register<Sync>(
-    "copyMapLibreFrameworkForIosSimulatorTests",
-) {
-    dependsOn("SwiftPackageConfigAppleIosSimulatorArm64CompileSwiftPackageIosSimulatorArm64")
-    from(
-        layout.buildDirectory.dir(
-            "spmKmpPlugin/iosSimulatorArm64/scratch/arm64-apple-ios-simulator/release/MapLibre.framework",
-        ),
-    )
-    into(
-        layout.buildDirectory.dir(
-            "bin/iosSimulatorArm64/debugTest/Frameworks/MapLibre.framework",
-        ),
-    )
-}
-
-tasks.named("iosSimulatorArm64Test") {
-    dependsOn(copyMapLibreFrameworkForIosSimulatorTests)
 }

@@ -1,6 +1,7 @@
 package com.melashkov.mcparking.ui.baysMap
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,7 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import org.maplibre.compose.camera.CameraState
+import org.maplibre.compose.camera.CameraUpdate
+import org.maplibre.compose.map.MapState
 import org.maplibre.spatialk.geojson.Position
 
 /** UI state for opening place search, displaying a destination and moving to it. */
@@ -21,10 +23,11 @@ internal class MapPlaceSearchState(
     private val scope: CoroutineScope,
     private val moveCamera: suspend (Place) -> MapViewport?,
     private val onEvent: (MapUiEvent) -> Unit,
+    destinationState: MutableState<Place?> = mutableStateOf(null),
 ) {
     var isSearchVisible by mutableStateOf(false)
         private set
-    var destination by mutableStateOf<Place?>(null)
+    var destination by destinationState
         private set
 
     private var navigationJob: Job? = null
@@ -54,19 +57,23 @@ internal class MapPlaceSearchState(
 
 @Composable
 internal fun rememberMapPlaceSearchState(
-    cameraState: CameraState,
+    cameraState: MapState,
     onEvent: (MapUiEvent) -> Unit,
+    destinationState: MutableState<Place?>,
 ): MapPlaceSearchState {
     val scope = rememberCoroutineScope()
     val currentOnEvent by rememberUpdatedState(onEvent)
-    return remember(cameraState, scope) {
+    return remember(cameraState, scope, destinationState) {
         MapPlaceSearchState(
             scope = scope,
+            destinationState = destinationState,
             moveCamera = { place ->
-                cameraState.animateTo(cameraState.position.copy(
-                    target = Position(place.longitude, place.latitude),
-                    zoom = place.destinationZoom(),
-                ))
+                cameraState.animateCamera(
+                    CameraUpdate(
+                        center = Position(place.longitude, place.latitude),
+                        zoom = place.destinationZoom(),
+                    ),
+                )
                 cameraState.currentViewport()
             },
             onEvent = { currentOnEvent(it) },

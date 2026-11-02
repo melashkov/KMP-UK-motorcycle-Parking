@@ -253,7 +253,7 @@ except (OSError, KeyError, BadZipFile, ValueError) as error:
 PY
 )"
 
-# Prepare and verify symbols before uploading any release artifacts.
+# Prepare available symbols before uploading any release artifacts.
 echo "Preparing native debug symbols..."
 SYMBOLS_PATH="$(python3 "$SCRIPT_DIR/prepare-android-symbols.py" "$AAB_PATH")"
 
@@ -289,14 +289,18 @@ echo "Uploaded versionCode: $VERSION_CODE"
 
 # Play imports the verified R8 mapping from the AAB. Uploading it again is rejected.
 
-echo "Uploading native debug symbols for versionCode $VERSION_CODE..."
-play_request \
-    -X POST \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/octet-stream" \
-    --data-binary "@$SYMBOLS_PATH" \
-    "$UPLOAD_BASE/applications/$PACKAGE_NAME/edits/$EDIT_ID/apks/$VERSION_CODE/deobfuscationFiles/nativeCode?uploadType=media" \
-    >/dev/null
+if [[ -n "$SYMBOLS_PATH" ]]; then
+    echo "Uploading available native debug symbols for versionCode $VERSION_CODE..."
+    play_request \
+        -X POST \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/octet-stream" \
+        --data-binary "@$SYMBOLS_PATH" \
+        "$UPLOAD_BASE/applications/$PACKAGE_NAME/edits/$EDIT_ID/apks/$VERSION_CODE/deobfuscationFiles/nativeCode?uploadType=media" \
+        >/dev/null
+else
+    echo "WARNING: Skipping native symbol upload; the bundle contains no available symbols." >&2
+fi
 
 # -----------------------------------------------------------------------------
 # Assign bundle to track

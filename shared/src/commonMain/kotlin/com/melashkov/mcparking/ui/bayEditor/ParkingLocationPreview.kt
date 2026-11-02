@@ -1,6 +1,7 @@
 package com.melashkov.mcparking.ui.bayEditor
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,7 +16,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
@@ -24,13 +24,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
+import com.melashkov.mcparking.ui.shared.ParkingMapOverlay
+import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.compose.camera.rememberCameraState
-import org.maplibre.compose.map.GestureOptions
-import org.maplibre.compose.map.MapOptions
+import org.maplibre.compose.interaction.ClickResult
+import org.maplibre.compose.interaction.MapInteractions
 import org.maplibre.compose.map.MaplibreMap
-import org.maplibre.compose.util.ClickResult
+import org.maplibre.compose.map.rememberMapState
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_change
@@ -56,9 +57,10 @@ internal fun ParkingLocationPreview(
         ),
     ) {
         key(location) {
-            val cameraState = rememberCameraState(
-                firstPosition = CameraPosition(
-                    target = Position(
+            val cameraState = rememberMapState(
+                baseStyle = parkingMapStyle(),
+                initialCameraPosition = CameraPosition(
+                    center = Position(
                         longitude = location.longitude,
                         latitude = location.latitude,
                     ),
@@ -74,12 +76,19 @@ internal fun ParkingLocationPreview(
             ) {
                 MaplibreMap(
                     modifier = Modifier.matchParentSize(),
-                    baseStyle = parkingMapStyle(),
-                    cameraState = cameraState,
-                    options = MapOptions(gestureOptions = GestureOptions.AllDisabled),
-                    onMapClick = { _, _ ->
-                        onChooseLocation()
-                        ClickResult.Consume
+                    state = cameraState,
+                    overlay = {
+                        ParkingMapOverlay(cameraState, contentWindowInsets = WindowInsets(0, 0, 0, 0))
+                    },
+                    interactions = MapInteractions(MapInteractions.None) {
+                        callbacks {
+                            click {
+                                onEvent {
+                                    onChooseLocation()
+                                    ClickResult.Consume
+                                }
+                            }
+                        }
                     },
                 )
 
@@ -94,7 +103,7 @@ internal fun ParkingLocationPreview(
                 Button(
                     onClick = onChooseLocation,
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
+                        .align(Alignment.TopEnd)
                         .padding(12.dp),
                 ) {
                     Icon(Icons.Default.EditLocationAlt, contentDescription = null)

@@ -8,7 +8,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,13 +41,21 @@ internal fun PlacesSearchScreen(
 ) {
     val viewModel = koinViewModel<PlacesSearchViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val initialQuery = remember(viewModel) { viewModel.uiState.value.query }
+    val queryState = rememberTextFieldState(initialQuery)
+    // Observe text for searching; result updates never write back into the editor.
+    LaunchedEffect(queryState, viewModel, near) {
+        snapshotFlow { queryState.text.toString() }.collect { query ->
+            viewModel.search(query, near)
+        }
+    }
     // Closing or selecting removes the screen; reset the search in one place.
     DisposableEffect(viewModel) { onDispose { viewModel.reset() } }
 
     PlacesSearchScreenContent(
         state = state,
-        onQueryChange = { viewModel.search(it, near) },
-        onSearch = { viewModel.search(state.query, near, immediate = true) },
+        queryState = queryState,
+        onSearch = { viewModel.search(queryState.text.toString(), near, immediate = true) },
         onSelect = onSelect,
         onDismiss = onDismiss,
     )
@@ -54,7 +65,7 @@ internal fun PlacesSearchScreen(
 @Composable
 internal fun PlacesSearchScreenContent(
     state: PlacesSearchState,
-    onQueryChange: (String) -> Unit,
+    queryState: TextFieldState,
     onSearch: () -> Unit,
     onSelect: (Place) -> Unit,
     onDismiss: () -> Unit,
@@ -74,8 +85,7 @@ internal fun PlacesSearchScreenContent(
             topBar = {
                 Column(Modifier.windowInsetsPadding(TopAppBarDefaults.windowInsets)) {
                     TextField(
-                        value = state.query,
-                        onValueChange = onQueryChange,
+                        state = queryState,
                         placeholder = { Text(stringResource(Res.string.places_search_hint)) },
                         leadingIcon = {
                             IconButton(onClick = dismiss) {
@@ -83,13 +93,17 @@ internal fun PlacesSearchScreenContent(
                             }
                         },
                         trailingIcon = {
-                            if (state.query.isNotEmpty()) {
-                                IconButton(onClick = { onQueryChange(""); focus.requestFocus(); keyboard?.show() }) {
+                            if (queryState.text.isNotEmpty()) {
+                                IconButton(onClick = {
+                                    queryState.clearText()
+                                    focus.requestFocus()
+                                    keyboard?.show()
+                                }) {
                                     Icon(Icons.Default.Close, stringResource(Res.string.places_clear_search))
                                 }
                             }
                         },
-                        singleLine = true,
+                        lineLimits = TextFieldLineLimits.SingleLine,
                         shape = CircleShape,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -98,7 +112,7 @@ internal fun PlacesSearchScreenContent(
                             unfocusedIndicatorColor = Color.Transparent,
                         ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = { onSearch(); keyboard?.hide() }),
+                        onKeyboardAction = { onSearch(); keyboard?.hide() },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                             .fillMaxWidth().focusRequester(focus),
                     )

@@ -1,19 +1,19 @@
 package com.melashkov.mcparking.ui.baysMap
 
-import com.melashkov.mcparking.ui.theme.LocalDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.melashkov.mcparking.ui.theme.LocalDarkTheme
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.step
+import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.CircleLayer
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.sources.GeoJsonSource
-import org.maplibre.compose.util.ClickResult
 import org.maplibre.compose.util.MaplibreComposable
 import org.maplibre.spatialk.geojson.Point
 import org.maplibre.spatialk.geojson.Position

@@ -16,7 +16,7 @@ maps, Ktor handles API requests, and Koin handles dependency injection.
 ### Android
 
 Open the repository in Android Studio and sync Gradle. CI uses JDK 21 and the
-project compiles against Android SDK 36.
+project compiles against Android SDK 37.
 
 Select `prodDebug` in **View → Tool Windows → Build Variants**, then run `androidApp`.
 This uses the production API and works on an emulator or physical device.
@@ -44,6 +44,7 @@ Run from the repository root. iOS tests require an Apple Silicon Mac and Xcode.
 ```sh
 ./gradlew :shared:testAndroidHostTest
 ./gradlew :shared:iosSimulatorArm64Test
+python3 -m unittest discover -s scripts/tests -v
 ```
 
 The [Tests and builds workflow](../.github/workflows/build.yml) runs shared tests,

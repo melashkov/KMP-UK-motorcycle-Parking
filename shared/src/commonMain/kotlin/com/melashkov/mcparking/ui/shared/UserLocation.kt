@@ -5,36 +5,33 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.compose.camera.CameraState
-import org.maplibre.compose.location.LocationPuck
-import org.maplibre.compose.location.mostAccurateBearing
+import org.maplibre.compose.camera.CameraUpdate
+import org.maplibre.compose.layers.LocationIndicatorLayer
+import org.maplibre.compose.location.rememberDefaultHeadingProvider
 import org.maplibre.compose.location.rememberDefaultLocationProvider
-import org.maplibre.compose.location.rememberDefaultOrientationProvider
-import org.maplibre.compose.location.rememberUserLocationState
+import org.maplibre.compose.location.rememberLocationState
+import org.maplibre.compose.map.MapState
 
 @Composable
 fun UserLocation(
-    camera: CameraState,
+    camera: MapState,
     locateRequest: Int,
 ) {
     val locationProvider =
         rememberDefaultLocationProvider()
 
-    val orientationProvider =
-        rememberDefaultOrientationProvider()
+    val headingProvider =
+        rememberDefaultHeadingProvider()
 
     val locationState =
-        rememberUserLocationState(
-            locationProvider = locationProvider,
-            orientationProvider = orientationProvider,
+        rememberLocationState(
+            provider = locationProvider,
+            headingProvider = headingProvider,
         )
 
-    LocationPuck(
-        idPrefix = "user",
-        location = locationState.location,
-        bearing = locationState.mostAccurateBearing(),
-        cameraState = camera,
+    LocationIndicatorLayer(
+        id = "user",
+        locationState = locationState,
     )
 
     LaunchedEffect(locateRequest) {
@@ -43,13 +40,13 @@ fun UserLocation(
         }
 
         val location =
-            snapshotFlow { locationState.location }
+            snapshotFlow { locationState.lastLocation }
                 .filterNotNull()
                 .first()
 
-        camera.animateTo(
-            CameraPosition(
-                target = location.position.value,
+        camera.animateCamera(
+            CameraUpdate(
+                center = location.position,
                 zoom = 15.0,
             )
         )

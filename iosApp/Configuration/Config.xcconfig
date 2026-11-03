@@ -7,3 +7,6 @@ CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=3.0.2
 
 JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home
+
+// MapLibre Compose 0.20 links the native runtime directly.
+OTHER_LDFLAGS=$(inherited) -l"c++" -lz -framework CoreFoundation -framework CoreGraphics -framework CoreText -framework Foundation -framework ImageIO -framework Metal -framework QuartzCore

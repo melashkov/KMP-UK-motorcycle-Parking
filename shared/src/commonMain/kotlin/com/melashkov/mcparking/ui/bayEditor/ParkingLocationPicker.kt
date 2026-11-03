@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.ui.bayEditor
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -30,20 +30,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
+import com.melashkov.mcparking.ui.shared.ParkingMapOverlay
+import com.melashkov.mcparking.ui.theme.parkingMapStyle
+import kotlin.math.roundToLong
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.compose.camera.CameraState
-import org.maplibre.compose.camera.rememberCameraState
-import org.maplibre.compose.map.GestureOptions
-import org.maplibre.compose.map.MapOptions
+import org.maplibre.compose.interaction.MapInteractions
+import org.maplibre.compose.map.MapState
 import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.map.rememberMapState
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_back
 import ukmotorcycleparking.shared.generated.resources.action_use_this_location
 import ukmotorcycleparking.shared.generated.resources.location_picker_instruction
 import ukmotorcycleparking.shared.generated.resources.location_picker_title
-import kotlin.math.roundToLong
 
 @Composable
 internal fun ParkingLocationPicker(
@@ -52,9 +53,10 @@ internal fun ParkingLocationPicker(
     onBack: () -> Unit,
     onLocationSelected: (GeoCoordinate) -> Unit,
 ) {
-    val cameraState = rememberCameraState(
-        firstPosition = CameraPosition(
-            target = Position(
+    val cameraState = rememberMapState(
+        baseStyle = parkingMapStyle(),
+        initialCameraPosition = CameraPosition(
+            center = Position(
                 longitude = initialLocation.longitude,
                 latitude = initialLocation.latitude,
             ),
@@ -89,9 +91,16 @@ internal fun ParkingLocationPicker(
         ) {
             MaplibreMap(
                 modifier = Modifier.fillMaxSize(),
-                baseStyle = parkingMapStyle(),
-                cameraState = cameraState,
-                options = MapOptions(gestureOptions = GestureOptions.RotationLocked),
+                state = cameraState,
+                overlay = {
+                    ParkingMapOverlay(cameraState, contentWindowInsets = WindowInsets(0, 0, 0, 0))
+                },
+                interactions = MapInteractions {
+                    camera {
+                        rotate { enabled = false }
+                        pitch { enabled = false }
+                    }
+                },
             )
 
             ParkingLocationPin(
@@ -122,7 +131,7 @@ internal fun ParkingLocationPicker(
 
 @Composable
 private fun LocationPickerBottomBar(
-    cameraState: CameraState,
+    cameraState: MapState,
     onLocationSelected: (GeoCoordinate) -> Unit,
 ) {
     Column(
@@ -134,7 +143,7 @@ private fun LocationPickerBottomBar(
 
         Button(
             onClick = {
-                val target = cameraState.position.target
+                val target = cameraState.cameraPosition.center
                 onLocationSelected(
                     GeoCoordinate(
                         latitude = target.latitude,
@@ -156,10 +165,10 @@ private fun LocationPickerBottomBar(
 }
 
 @Composable
-private fun LocationCoordinates(cameraState: CameraState) {
+private fun LocationCoordinates(cameraState: MapState) {
     val coordinateText by remember(cameraState) {
         derivedStateOf {
-            val target = cameraState.position.target
+            val target = cameraState.cameraPosition.center
             "${target.latitude.shortCoordinate}, ${target.longitude.shortCoordinate}"
         }
     }

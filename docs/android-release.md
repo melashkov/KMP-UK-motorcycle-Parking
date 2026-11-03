@@ -4,7 +4,7 @@ Run commands below from the repository root.
 
 ## Symbols
 
-`scripts/release-android.sh` verifies the embedded R8 mapping and uploads native debug symbols to Google Play
+`scripts/release-android.sh` verifies the embedded R8 mapping and uploads available native debug symbols to Google Play
 for the uploaded bundle's version code, before assigning it to a track and committing the release.
 It requires Python 3 in addition to the existing `curl`, `jq`, and `gcloud` tools.
 
@@ -13,26 +13,27 @@ bundle for local crash analysis. Missing or empty mappings stop the release befo
 Google Play automatically imports the embedded mapping; a separate mapping upload would be rejected.
 See the [Google Play documentation](https://support.google.com/googleplay/android-developer/answer/9848633?hl=en).
 
-MapLibre ships stripped native libraries, so the script downloads its matching OpenGL **release**
-symbol archive from the official MapLibre GitHub release. The archive is cached under
-`build/native-symbols/`, checked against its SHA-256 checksum, and each library's ELF build ID is
-matched against the AAB. Missing or mismatched symbols stop the release. Gradle also includes any
-available full debug symbols from other dependencies; symbols already removed by their publishers
-cannot be recovered (including the current AndroidX graphics path library).
+MapLibre Compose 0.20.0 uses the Native FFI OpenGL runtime. Its published Android
+libraries and matching release archives are stripped, so full MapLibre native symbols are
+currently unavailable. Releases continue with a warning for each library without symbols.
+Kotlin/Java crash deobfuscation through the embedded R8 mapping is unaffected; native map
+crashes may lack function names and source lines.
 
-When upgrading MapLibre, update both `mapLibreAndroidVersion` and
-`mapLibreAndroidSymbolsSha256` in `gradle.properties`. Use the checksum for
-`debug-symbols-maplibre-android-opengl-release-android-v<VERSION>.tar.gz` from the corresponding
-[MapLibre release](https://github.com/maplibre/maplibre-native/releases).
+The script packages the native symbols Gradle embedded in the same AAB, when available.
+It validates their paths, checks that each file is nonempty and has a corresponding packaged
+library, and saves `native-debug-symbols.zip` beside the bundle. It no longer downloads symbols
+for the old Android SDK: those cannot match the new FFI runtime. If no native symbols are
+available, it warns and skips the native symbol upload. Invalid symbol metadata still stops
+the release. Upload failures for available symbols also stop the release.
 
-To prepare and verify symbols locally without publishing:
+To prepare available symbols locally without publishing:
 
 ```sh
 python3 scripts/prepare-android-symbols.py androidApp/build/outputs/bundle/prodRelease/androidApp-prod-release.aab
 ```
 
-The resulting `native-debug-symbols.zip` is saved beside the AAB. An already downloaded archive can
-be supplied with `--archive /path/to/archive.tar.gz`; the same checksum and build ID checks apply.
+The command prints the archive path on stdout, or nothing when no symbols are available.
+Warnings and included filenames are printed to stderr.
 
 ## Release builds
 

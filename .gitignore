@@ -20,3 +20,6 @@ node_modules/
 
 # Android Studio release export (generated binary).
 /androidApp/prod/
+
+# Python script bytecode.
+__pycache__/

@@ -18,6 +18,9 @@ import org.koin.core.scope.Scope
 class NetworkModule {
 
     @Singleton
+    internal fun provideDebugApiPreferences(scope: Scope): DebugApiPreferences = platformDebugApiPreferences(scope)
+
+    @Singleton
     fun provideApiUrlProvider(scope: Scope): ApiUrlProvider =
         platformApiUrlProvider(scope)
 

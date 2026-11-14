@@ -89,10 +89,11 @@ retained as workflow artifacts.
 
 ## Running locally
 
-For Android, open the repository in Android Studio, sync Gradle, select `prodDebug`
+For Android, open the repository in Android Studio, sync Gradle, select `debug`
 in **Build Variants**, and run `androidApp`. For iOS, open
 [iosApp/iosApp.xcodeproj](./iosApp/iosApp.xcodeproj) in Xcode on an Apple Silicon Mac.
-Both use the production API.
+Both default to the production API. Debug builds can select a local mock API in
+Settings; see the development guide below.
 
 See the [development guide](./docs/development.md) for toolchain requirements,
 build commands and tests.

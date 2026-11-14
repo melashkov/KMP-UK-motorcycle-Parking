@@ -33,7 +33,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Test native symbol preparation
-        run: python3 -m unittest discover -s scripts/tests -v
+        run: python3 -m unittest discover -s scripts/tests -p test_prepare_android_symbols.py -v
 
       - name: Run shared tests on Android
         run: ./gradlew :shared:testAndroidHostTest --stacktrace
@@ -54,6 +54,40 @@ jobs:
           name: android-debug-apks
           path: androidApp/build/outputs/apk/*/debug/*.apk
           if-no-files-found: error
+
+      - name: Verify MapLibre libraries in the Android release bundle
+        run: |
+          ./gradlew :androidApp:bundleRelease --stacktrace
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          abis = {"arm64-v8a", "armeabi-v7a", "x86_64"}
+          libraries = {"libjniMaplibreNativeC.so", "libmaplibre-native-c.so"}
+          expected = {f"base/lib/{abi}/{library}" for abi in abis for library in libraries}
+          bundles = list(Path("androidApp/build/outputs/bundle").rglob("*-release.aab"))
+          if len(bundles) != 1:
+              raise SystemExit(f"Expected one Android release bundle, found: {bundles}")
+          with ZipFile(bundles[0]) as bundle:
+              native_libraries = {
+                  entry.filename
+                  for entry in bundle.infolist()
+                  if entry.filename.startswith("base/lib/")
+                  and entry.filename.endswith(".so")
+                  and entry.file_size > 0
+              }
+
+          packaged_abis = {name.split("/")[2] for name in native_libraries}
+          if packaged_abis != abis:
+              raise SystemExit(f"Unexpected release ABI coverage: {sorted(packaged_abis)}")
+
+          packaged = {name for name in native_libraries if name.rsplit("/", 1)[-1] in libraries}
+          if packaged != expected:
+              raise SystemExit(
+                  f"MapLibre ABI mismatch. Missing: {sorted(expected - packaged)}. "
+                  f"Unexpected: {sorted(packaged - expected)}."
+              )
+          PY
 
   ios:
     name: iOS tests and simulator build

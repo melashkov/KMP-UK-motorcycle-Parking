@@ -1,6 +1,8 @@
 package com.melashkov.mcparking.ui.shared
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,6 +34,7 @@ internal val MapAttributionSpace = 40.dp
 internal fun ParkingMapOverlay(
     mapState: MapState,
     contentWindowInsets: WindowInsets = WindowInsets.safeDrawing,
+    topEndControl: @Composable () -> Unit = {},
 ) {
     Box(
         Modifier.fillMaxSize()
@@ -43,7 +46,14 @@ internal fun ParkingMapOverlay(
             zoom = { mapState.cameraPosition.zoom },
             modifier = Modifier.align(Alignment.TopStart),
         )
-        DisappearingCompassButton(Modifier.align(Alignment.TopEnd))
+        Column(
+            modifier = Modifier.align(Alignment.TopEnd),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            topEndControl()
+            DisappearingCompassButton()
+        }
 
         // Our OpenFreeMap tiles require OpenMapTiles and OpenStreetMap credits.
         Surface(

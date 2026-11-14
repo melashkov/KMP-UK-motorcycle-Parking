@@ -37,6 +37,10 @@ Warnings and included filenames are printed to stderr.
 
 ## Release builds
 
+MapLibre Compose 0.20.0 removes 32-bit `x86` support. Devices and emulator images that can only
+run `x86` binaries cannot upgrade to this release. The Android CI job checks the release bundle
+for both MapLibre native libraries on `arm64-v8a`, `armeabi-v7a`, and `x86_64`.
+
 Android release builds enable R8 code optimization and resource shrinking. Preview tooling is
 available in debug builds; the app's preview annotations are compile-only. R8 is pinned in
 `settings.gradle.kts` to a version that supports the project's Kotlin 2.4 metadata.

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.ui.shared.ParkingMapOverlay
+import com.melashkov.mcparking.ui.shared.toGeoCoordinate
 import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import kotlin.math.roundToLong
 import org.jetbrains.compose.resources.stringResource
@@ -143,13 +144,7 @@ private fun LocationPickerBottomBar(
 
         Button(
             onClick = {
-                val target = cameraState.cameraPosition.center
-                onLocationSelected(
-                    GeoCoordinate(
-                        latitude = target.latitude,
-                        longitude = target.longitude,
-                    ),
-                )
+                onLocationSelected(cameraState.cameraPosition.center.toGeoCoordinate())
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -168,7 +163,7 @@ private fun LocationPickerBottomBar(
 private fun LocationCoordinates(cameraState: MapState) {
     val coordinateText by remember(cameraState) {
         derivedStateOf {
-            val target = cameraState.cameraPosition.center
+            val target = cameraState.cameraPosition.center.toGeoCoordinate()
             "${target.latitude.shortCoordinate}, ${target.longitude.shortCoordinate}"
         }
     }

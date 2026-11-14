@@ -47,8 +47,10 @@ python3 scripts/mock-api.py
 ```
 
 In a debug app, open **Settings → Debug API → Local development**, then stop and
-run the app again from Android Studio or Xcode so the app process restarts. Switching
-back to Production also requires a restart.
+run the app again from Android Studio or Xcode so the app process restarts. Settings
+shows the active backend and the choice for the next launch. Reports and feedback
+are disabled while the two choices differ. Switching back to Production also
+requires a restart.
 Android uses `http://10.0.2.2:8080/api/` (the emulator's host alias); the iOS simulator
 uses `http://127.0.0.1:8080/api/`. The server binds only to the computer's loopback
 interface. Local development currently supports the Android emulator and iOS

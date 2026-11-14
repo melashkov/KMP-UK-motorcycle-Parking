@@ -11,15 +11,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.melashkov.mcparking.di.DebugApiPreferences
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.melashkov.mcparking.di.DebugApiBackend
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.*
@@ -77,28 +75,40 @@ internal fun SettingsScreen(onDismiss: () -> Unit) {
 
 @Composable
 private fun DebugApiSettings() {
-    val preferences = koinInject<DebugApiPreferences>()
-    if (!preferences.enabled) return
-    var localDevelopment by remember { mutableStateOf(preferences.localDevelopment) }
+    val backend = koinInject<DebugApiBackend>()
+    if (!backend.enabled) return
+    val selection by backend.selection.collectAsState()
+    val activeBackend = debugApiLabel(selection.activeLocal)
     HorizontalDivider(Modifier.padding(vertical = 24.dp))
     Text(stringResource(Res.string.debug_api_title), style = MaterialTheme.typography.titleLarge)
-    Text(stringResource(Res.string.debug_api_description), modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
+    Text(stringResource(Res.string.debug_api_active, activeBackend), modifier = Modifier.padding(top = 8.dp))
+    if (selection.restartRequired) {
+        Text(stringResource(Res.string.debug_api_restart_required), modifier = Modifier.padding(top = 8.dp))
+    }
+    Text(
+        stringResource(Res.string.debug_api_next_launch),
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(top = 12.dp),
+    )
     Column(Modifier.selectableGroup()) {
         listOf(false, true).forEach { local ->
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                    .selectable(localDevelopment == local, role = Role.RadioButton, onClick = {
-                        preferences.localDevelopment = local
-                        localDevelopment = local
+                    .selectable(selection.nextLaunchLocal == local, role = Role.RadioButton, onClick = {
+                        backend.selectLocal(local)
                     }).padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                RadioButton(selected = localDevelopment == local, onClick = null)
+                RadioButton(selected = selection.nextLaunchLocal == local, onClick = null)
                 Text(
-                    stringResource(if (local) Res.string.debug_api_local else Res.string.debug_api_production),
+                    debugApiLabel(local),
                     modifier = Modifier.padding(start = 12.dp),
                 )
             }
         }
     }
 }
+
+@Composable
+private fun debugApiLabel(local: Boolean): String =
+    stringResource(if (local) Res.string.debug_api_local else Res.string.debug_api_production)

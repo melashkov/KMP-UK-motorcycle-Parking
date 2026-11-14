@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="debug_api_title">Debug API</string>
-    <string name="debug_api_description">Choose the API used by this debug build. After changing it, stop and run the app again from Android Studio or Xcode.</string>
+    <string name="debug_api_active">Active backend: %1$s</string>
+    <string name="debug_api_next_launch">Backend on next launch</string>
+    <string name="debug_api_restart_required">Restart the app to switch backends and re-enable submissions.</string>
     <string name="debug_api_production">Production</string>
     <string name="debug_api_local">Local development (port 8080)</string>
     <string name="action_add_bay">Add bay</string>

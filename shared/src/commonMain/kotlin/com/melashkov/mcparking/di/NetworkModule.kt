@@ -21,6 +21,9 @@ class NetworkModule {
     internal fun provideDebugApiPreferences(scope: Scope): DebugApiPreferences = platformDebugApiPreferences(scope)
 
     @Singleton
+    internal fun provideDebugApiBackend(preferences: DebugApiPreferences): DebugApiBackend = DebugApiBackend(preferences)
+
+    @Singleton
     fun provideApiUrlProvider(scope: Scope): ApiUrlProvider =
         platformApiUrlProvider(scope)
 
@@ -35,6 +38,11 @@ class NetworkModule {
     ): HttpClient =
         HttpClient {
             expectSuccess = true
+
+            val backend = scope.get<DebugApiBackend>()
+            if (backend.enabled) {
+                install(DebugApiSubmissionGuard) { this.backend = backend }
+            }
 
             install(ApiClientMetadataPlugin) {
                 metadata = platformApiClientMetadata(scope)

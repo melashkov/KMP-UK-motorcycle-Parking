@@ -18,21 +18,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.melashkov.mcparking.di.DebugApiBackend
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.ui.shared.localizedMessage
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import ukmotorcycleparking.shared.generated.resources.*
 
 @Composable
 internal fun FeedbackScreen(onDismiss: () -> Unit, viewModel: FeedbackViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsState()
-    FeedbackContent(state = state, onDismiss = onDismiss)
+    val backend = koinInject<DebugApiBackend>()
+    val selection by backend.selection.collectAsState()
+    FeedbackContent(state = state, onDismiss = onDismiss, restartRequired = selection.restartRequired)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FeedbackContent(state: FeedbackUiState, onDismiss: () -> Unit) {
+internal fun FeedbackContent(
+    state: FeedbackUiState,
+    onDismiss: () -> Unit,
+    restartRequired: Boolean,
+) {
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val close = { state.eventSink(FeedbackEvent.Reset); onDismiss() }
     val dismiss = {
@@ -58,9 +66,12 @@ internal fun FeedbackContent(state: FeedbackUiState, onDismiss: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         state.error?.let { FeedbackSubmissionError(it) }
+                        if (restartRequired && !state.isSent) {
+                            Text(stringResource(Res.string.debug_api_restart_required))
+                        }
                         Button(
                             onClick = { if (state.isSent) close() else state.eventSink(FeedbackEvent.Submit) },
-                            enabled = state.isSent || state.canSubmit,
+                            enabled = state.isSent || (state.canSubmit && !restartRequired),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(when {

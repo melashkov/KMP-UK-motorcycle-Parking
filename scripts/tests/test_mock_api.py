@@ -37,6 +37,8 @@ class MockApiTest(unittest.TestCase):
         path = "/api/bounds.php?north=52&south=51&east=0&west=-1"
         body = self.request(path)
         self.assertEqual(body, self.request(path))
+        equivalent = self.request("/api/bounds.php?west=-1.0&east=-0&south=51.0&north=52.0")
+        self.assertEqual(body["results"], equivalent["results"])
         self.assertEqual(body["count"], 10)
         self.assertEqual(len(body["results"]), 10)
         self.assertEqual(len({bay["id"] for bay in body["results"]}), 10)
@@ -45,8 +47,15 @@ class MockApiTest(unittest.TestCase):
             self.assertTrue(-1 < bay["longitude"] < 0)
             self.assertIn(bay["type"], (1, 2, 3, 4, 5, 9))
             self.assertIn("Mock", bay["title"])
-        other = self.request("/api/bounds.php?north=55&south=54&east=2&west=1")
-        self.assertTrue(all(54 < bay["latitude"] < 55 for bay in other["results"]))
+
+    def test_disjoint_viewports_have_disjoint_bay_ids(self):
+        first = self.request("/api/bounds.php?north=52&south=51&east=0&west=-1")
+        second = self.request("/api/bounds.php?north=55&south=54&east=2&west=1")
+        self.assertTrue(all(54 < bay["latitude"] < 55 for bay in second["results"]))
+        first_ids = {bay["id"] for bay in first["results"]}
+        second_ids = {bay["id"] for bay in second["results"]}
+        self.assertTrue(first_ids.isdisjoint(second_ids))
+        self.assertTrue(all(0 < bay_id <= 2**31 - 1 for bay_id in first_ids | second_ids))
 
     def test_invalid_bounds_return_bad_request(self):
         for query in ("", "north=nan&south=51&east=0&west=-1", "north=50&south=51&east=0&west=-1"):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Synthetic contributor API. Run with: python3 scripts/mock-api.py"""
 
+import hashlib
 import json
 import math
 import random
@@ -18,21 +19,27 @@ def parking_response(query):
     width = east - west if east >= west else east + 360 - west
     if width == 0:
         raise ValueError("Bounds must have a width")
-    rng = random.Random(json.dumps(bounds, sort_keys=True))
+    normalized_bounds = tuple(0.0 if value == 0 else value for value in (north, south, east, west))
+    seed = json.dumps(normalized_bounds).encode("ascii")
+    rng = random.Random(seed)
+    bay_count = 10
+    # Reserve a block per viewport within the signed 32-bit API ID range.
+    viewport_hash = int.from_bytes(hashlib.sha256(seed).digest(), "big")
+    first_id = 1 + bay_count * (viewport_hash % ((2**31 - 1) // bay_count))
     results = []
-    for index in range(10):
+    for index in range(bay_count):
         longitude = west + rng.uniform(0.1, 0.9) * width
         if longitude > 180:
             longitude -= 360
         results.append({
-            "id": index + 1,
+            "id": first_id + index,
             "title": f"Mock bay {index + 1}",
             "type": (1, 2, 3, 4, 5, 9)[index % 6],
             "latitude": south + rng.uniform(0.1, 0.9) * (north - south),
             "longitude": longitude,
             "description": "Synthetic test bay — not a real parking location.",
         })
-    return {"status": "OK", "count": len(results), "limit": 10, "bounds": bounds, "results": results}
+    return {"status": "OK", "count": len(results), "limit": bay_count, "bounds": bounds, "results": results}
 
 
 class MockApiHandler(BaseHTTPRequestHandler):

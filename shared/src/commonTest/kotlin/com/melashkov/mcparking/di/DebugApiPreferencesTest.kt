@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.di
 
+import com.melashkov.mcparking.data.preferences.MemoryPreferenceStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -16,24 +17,28 @@ import kotlin.test.assertTrue
 class DebugApiPreferencesTest {
     @Test
     fun releaseAlwaysUsesProductionEvenWithSavedLocalPreference() {
-        val backend = DebugApiBackend(Preferences(enabled = false, localDevelopment = true))
-        backend.selectLocal(true)
+        val store = MemoryPreferenceStore()
+        store.putBoolean("local_development", true)
+        val backend = DebugApiBackend(DebugApiPreferences(store), enabled = false)
+        backend.selectLocal(false)
 
         assertEquals(ApiEnvironment.Production, backend.activeEnvironment(ApiEnvironment.AndroidEmulatorDevelopment))
         assertFalse(backend.selection.value.restartRequired)
+        assertTrue(store.getBoolean("local_development"))
     }
 
     @Test
     fun backendChangesOnlyOnRestartAndChoosingActiveBackendCancelsPendingSwitch() {
-        val preferences = Preferences()
-        val backend = DebugApiBackend(preferences)
+        val store = MemoryPreferenceStore()
+        val backend = DebugApiBackend(DebugApiPreferences(store), enabled = true)
         val local = ApiEnvironment.LocalhostDevelopment
 
         backend.selectLocal(true)
         assertTrue(backend.selection.value.restartRequired)
         assertEquals(ApiEnvironment.Production, backend.activeEnvironment(local))
 
-        val restarted = DebugApiBackend(preferences)
+        assertTrue(store.getBoolean("local_development"))
+        val restarted = DebugApiBackend(DebugApiPreferences(store), enabled = true)
         assertFalse(restarted.selection.value.restartRequired)
         assertEquals(local, restarted.activeEnvironment(local))
 
@@ -46,7 +51,7 @@ class DebugApiPreferencesTest {
 
     @Test
     fun pendingSwitchBlocksReportsAndFeedbackBeforeTheyReachTheHttpEngine() = runTest {
-        val backend = DebugApiBackend(Preferences())
+        val backend = DebugApiBackend(DebugApiPreferences(MemoryPreferenceStore()), enabled = true)
         val requests = mutableListOf<String>()
         val client = HttpClient(MockEngine { request ->
             requests += request.url.encodedPath
@@ -71,9 +76,4 @@ class DebugApiPreferencesTest {
             client.close()
         }
     }
-
-    private class Preferences(
-        override val enabled: Boolean = true,
-        override var localDevelopment: Boolean = false,
-    ) : DebugApiPreferences
 }

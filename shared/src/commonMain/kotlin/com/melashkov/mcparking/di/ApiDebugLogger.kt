@@ -11,4 +11,6 @@ class ApiDebugLogger(
     }
 }
 
+internal expect fun platformIsDebugBuild(scope: Scope): Boolean
+
 internal expect fun platformApiDebugLogger(scope: Scope): ApiDebugLogger

@@ -1,12 +1,13 @@
 package com.melashkov.mcparking.di
 
+import com.melashkov.mcparking.data.preferences.PreferenceStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.koin.core.scope.Scope
 
-internal interface DebugApiPreferences {
-    val enabled: Boolean
+internal class DebugApiPreferences(private val store: PreferenceStore) {
     var localDevelopment: Boolean
+        get() = store.getBoolean("local_development")
+        set(value) = store.putBoolean("local_development", value)
 }
 
 internal data class DebugApiSelection(
@@ -16,8 +17,10 @@ internal data class DebugApiSelection(
     val restartRequired: Boolean get() = activeLocal != nextLaunchLocal
 }
 
-internal class DebugApiBackend(private val preferences: DebugApiPreferences) {
-    val enabled = preferences.enabled
+internal class DebugApiBackend(
+    private val preferences: DebugApiPreferences,
+    val enabled: Boolean,
+) {
     private val _selection = MutableStateFlow(DebugApiSelection(enabled && preferences.localDevelopment))
     val selection = _selection.asStateFlow()
 
@@ -30,5 +33,3 @@ internal class DebugApiBackend(private val preferences: DebugApiPreferences) {
     fun activeEnvironment(localEnvironment: ApiEnvironment): ApiEnvironment =
         if (selection.value.activeLocal) localEnvironment else ApiEnvironment.Production
 }
-
-internal expect fun platformDebugApiPreferences(scope: Scope): DebugApiPreferences

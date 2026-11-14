@@ -44,4 +44,4 @@ internal val ApiClientMetadataPlugin = createClientPlugin("ApiClientMetadata", :
     }
 }
 
-internal expect fun platformApiClientMetadata(scope: Scope): ApiClientMetadata
+internal expect fun platformApiClientMetadata(scope: Scope, installationId: String): ApiClientMetadata

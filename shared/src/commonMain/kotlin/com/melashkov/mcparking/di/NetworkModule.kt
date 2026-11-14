@@ -18,10 +18,12 @@ import org.koin.core.scope.Scope
 class NetworkModule {
 
     @Singleton
-    internal fun provideDebugApiPreferences(scope: Scope): DebugApiPreferences = platformDebugApiPreferences(scope)
+    internal fun provideDebugApiBackend(preferences: DebugApiPreferences, scope: Scope): DebugApiBackend =
+        DebugApiBackend(preferences, enabled = platformIsDebugBuild(scope))
 
     @Singleton
-    internal fun provideDebugApiBackend(preferences: DebugApiPreferences): DebugApiBackend = DebugApiBackend(preferences)
+    internal fun provideInstallationIdProvider(scope: Scope): InstallationIdProvider =
+        platformInstallationIdProvider(scope)
 
     @Singleton
     fun provideApiUrlProvider(scope: Scope): ApiUrlProvider =
@@ -45,7 +47,7 @@ class NetworkModule {
             }
 
             install(ApiClientMetadataPlugin) {
-                metadata = platformApiClientMetadata(scope)
+                metadata = platformApiClientMetadata(scope, scope.get<InstallationIdProvider>().getOrCreate())
                 baseUrl = apiUrlProvider.baseUrl
             }
 

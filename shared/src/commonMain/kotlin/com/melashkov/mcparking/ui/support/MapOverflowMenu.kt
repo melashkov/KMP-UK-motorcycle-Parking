@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.*
 
 @Composable
@@ -24,7 +25,7 @@ internal fun MapOverflowMenu(
     onAddBay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val preferences = rememberDeveloperMessagePreferences()
+    val preferences = koinInject<DeveloperMessagePreferences>()
     var page by rememberSaveable {
         mutableStateOf(if (preferences.lastSeenRelease != CurrentReleaseId) "news" else "")
     }

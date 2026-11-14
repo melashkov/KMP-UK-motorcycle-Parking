@@ -1,10 +1,9 @@
 package com.melashkov.mcparking.ui.support
 
-import androidx.compose.runtime.Composable
+import com.melashkov.mcparking.data.preferences.PreferenceStore
 
-internal interface DeveloperMessagePreferences {
+internal class DeveloperMessagePreferences(private val store: PreferenceStore) {
     var lastSeenRelease: String
+        get() = store.getString("last_seen_release").orEmpty()
+        set(value) = store.putString("last_seen_release", value)
 }
-
-@Composable
-internal expect fun rememberDeveloperMessagePreferences(): DeveloperMessagePreferences

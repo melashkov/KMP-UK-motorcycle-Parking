@@ -2,11 +2,14 @@ package com.melashkov.mcparking.ui.bayEditor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.melashkov.mcparking.di.ApiSubmissionBackend
+import com.melashkov.mcparking.di.DebugApiBackend
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.usecases.SubmitParkingBayUseCase
 import com.melashkov.mcparking.ui.navigation.AppNavigationSink
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,15 +31,18 @@ data class BayEditorUiState(
 )
 
 @KoinViewModel
-class BayEditorViewModel(
+internal class BayEditorViewModel(
     private val submitParkingBay: SubmitParkingBayUseCase,
     private val appNavigationSink: AppNavigationSink,
+    private val backend: DebugApiBackend,
 ) : ViewModel() {
+    private val draftBackend = backend.selection.value
     private val eventSink: (BayEditorEvent) -> Unit = ::onEvent
     private val _uiState = MutableStateFlow(BayEditorUiState(eventSink = eventSink))
     val uiState = _uiState.asStateFlow()
 
     private fun onEvent(event: BayEditorEvent) {
+        if (draftBackend != backend.selection.value) return
         when (event) {
             BayEditorEvent.Back -> appNavigationSink.back()
             BayEditorEvent.ClearSubmissionError -> clearSubmissionError()
@@ -59,8 +65,11 @@ class BayEditorViewModel(
                 submissionError = null,
             )
         }
-        viewModelScope.launch {
-            when (val result = submitParkingBay(submission)) {
+        viewModelScope.launch(ApiSubmissionBackend(draftBackend)) {
+            val result = submitParkingBay(submission)
+            ensureActive()
+            if (draftBackend != backend.selection.value) return@launch
+            when (result) {
                 is DataResult.Success -> {
                     _uiState.update {
                         it.copy(

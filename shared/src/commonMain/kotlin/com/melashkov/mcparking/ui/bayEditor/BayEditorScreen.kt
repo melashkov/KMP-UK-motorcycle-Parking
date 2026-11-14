@@ -12,14 +12,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
-import com.melashkov.mcparking.di.DebugApiBackend
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.action_back
 import ukmotorcycleparking.shared.generated.resources.action_add_parking_bay
@@ -32,15 +28,11 @@ fun BayEditorScreen(
     initialData: BayEditorInitialData,
     uiState: BayEditorUiState,
 ) {
-    val backend = koinInject<DebugApiBackend>()
-    val selection by backend.selection.collectAsState()
     val formState = rememberBayEditorFormState(initialData)
     val formScrollState = rememberScrollState()
     val submit: () -> Unit = {
-        if (!backend.selection.value.restartRequired) {
-            formState.submissionOrNull()?.let { submission ->
-                uiState.eventSink(BayEditorEvent.Submit(submission))
-            }
+        formState.submissionOrNull()?.let { submission ->
+            uiState.eventSink(BayEditorEvent.Submit(submission))
         }
     }
 
@@ -73,7 +65,6 @@ fun BayEditorScreen(
             EditorSubmitBar(
                 mode = formState.mode,
                 isSubmitting = uiState.isSubmitting,
-                restartRequired = selection.restartRequired,
                 submissionError = uiState.submissionError,
                 onSubmit = submit,
             )

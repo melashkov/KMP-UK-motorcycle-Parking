@@ -1,6 +1,8 @@
 package com.melashkov.mcparking.ui.baysMap
 
 import com.melashkov.mcparking.FakeParkingSearchRepository
+import com.melashkov.mcparking.di.DebugApiBackend
+import com.melashkov.mcparking.di.testDebugApiBackend
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.domain.interfaces.AppError
@@ -351,12 +353,52 @@ class BaysMapViewModelTest {
         assertEquals(bay.position.longitude, route.longitude)
     }
 
+    @Test
+    fun changingBackendCancelsOldSearchAndReloadsTheCurrentViewport() = runTest(dispatcher) {
+        val backend = testDebugApiBackend(enabled = true)
+        val previousBay = testBay()
+        val newBay = testBay(id = "53")
+        val repository = FakeParkingSearchRepository(searchResult = DataResult.Success(listOf(previousBay)))
+        val viewModel = createViewModel(repository, backend = backend)
+        val previousEvents = viewModel.uiState.value.eventSink
+        val viewport = testViewport()
+        previousEvents(MapUiEvent.InitialViewport(viewport))
+        advanceUntilIdle()
+        previousEvents(MapUiEvent.SelectedBay(previousBay))
+
+        val oldSearch = CompletableDeferred<Unit>()
+        repository.beforeSearch = { oldSearch.await() }
+        previousEvents(MapUiEvent.SearchCurrentArea)
+        runCurrent()
+
+        val newSearch = CompletableDeferred<Unit>()
+        repository.beforeSearch = { newSearch.await() }
+        repository.searchResult = DataResult.Success(listOf(newBay))
+        backend.selectLocal(true)
+        runCurrent()
+
+        assertEquals(viewport, viewModel.uiState.value.currentViewport)
+        assertTrue(viewModel.uiState.value.parkingBays.isEmpty())
+        previousEvents(MapUiEvent.SelectedBay(previousBay))
+        assertNull(viewModel.uiState.value.selectedBay)
+        oldSearch.complete(Unit)
+        runCurrent()
+        assertTrue(viewModel.uiState.value.parkingBays.isEmpty())
+
+        newSearch.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(listOf(newBay), viewModel.uiState.value.parkingBays)
+        assertEquals(List(3) { viewport.bounds }, repository.searchedBounds)
+    }
+
     private fun createViewModel(
         repository: FakeParkingSearchRepository,
         navigation: AppNavigationSink = AppNavigationSink(),
+        backend: DebugApiBackend = testDebugApiBackend(),
     ) = BaysMapViewModel(
         searchParkingBays = SearchParkingBaysUseCase(repository),
         shouldShowSearchThisArea = ShouldShowSearchThisAreaUseCase(),
         appNavigationSink = navigation,
+        backend = backend,
     )
 }

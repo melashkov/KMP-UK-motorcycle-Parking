@@ -1,6 +1,8 @@
 package com.melashkov.mcparking.ui.bayEditor
 
 import com.melashkov.mcparking.FakeParkingSubmissionRepository
+import com.melashkov.mcparking.di.DebugApiBackend
+import com.melashkov.mcparking.di.testDebugApiBackend
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingBaySubmission
 import com.melashkov.mcparking.domain.entity.ParkingType
@@ -90,10 +92,28 @@ class BayEditorViewModelTest {
         assertNull(viewModel.uiState.value.submissionError)
     }
 
-    private fun createViewModel(repository: FakeParkingSubmissionRepository) =
+    @Test
+    fun editorFromPreviousBackendCannotSubmitEvenAfterSwitchingBack() = runTest(dispatcher) {
+        val backend = testDebugApiBackend(enabled = true)
+        val repository = FakeParkingSubmissionRepository()
+        val viewModel = createViewModel(repository, backend)
+        backend.selectLocal(true)
+        backend.selectLocal(false)
+
+        viewModel.uiState.value.eventSink(BayEditorEvent.Submit(validSubmission()))
+        advanceUntilIdle()
+
+        assertTrue(repository.submissions.isEmpty())
+    }
+
+    private fun createViewModel(
+        repository: FakeParkingSubmissionRepository,
+        backend: DebugApiBackend = testDebugApiBackend(),
+    ) =
         BayEditorViewModel(
             submitParkingBay = SubmitParkingBayUseCase(repository),
             appNavigationSink = AppNavigationSink(),
+            backend = backend,
         )
 
     private fun validSubmission() = ParkingBaySubmission(

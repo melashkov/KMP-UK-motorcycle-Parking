@@ -1,5 +1,7 @@
 package com.melashkov.mcparking.ui.support
 
+import com.melashkov.mcparking.di.DebugApiBackend
+import com.melashkov.mcparking.di.testDebugApiBackend
 import com.melashkov.mcparking.domain.interfaces.AppError
 import com.melashkov.mcparking.domain.interfaces.DataResult
 import com.melashkov.mcparking.domain.interfaces.FeedbackRepository
@@ -95,10 +97,26 @@ class FeedbackViewModelTest {
         assertEquals(FeedbackSubmissionStatus.Idle, vm.uiState.value.submissionStatus)
     }
 
-    private fun viewModel(send: suspend (String, String) -> DataResult<Unit>) =
-        FeedbackViewModel(SendFeedbackUseCase(object : FeedbackRepository {
-            override suspend fun send(message: String, email: String): DataResult<Unit> = send.invoke(message, email)
-        }))
+    @Test fun changingBackendDiscardsFeedbackDraft() = runTest {
+        val backend = testDebugApiBackend(enabled = true)
+        var calls = 0
+        val vm = viewModel(backend) { _, _ -> calls++; DataResult.Success(Unit) }
+        vm.event(FeedbackEvent.MessageChanged("A draft for the old backend"))
+
+        backend.selectLocal(true)
+        vm.event(FeedbackEvent.Submit)
+        advanceUntilIdle()
+
+        assertEquals("", vm.uiState.value.message)
+        assertEquals(0, calls)
+    }
+
+    private fun viewModel(
+        backend: DebugApiBackend = testDebugApiBackend(),
+        send: suspend (String, String) -> DataResult<Unit>,
+    ) = FeedbackViewModel(SendFeedbackUseCase(object : FeedbackRepository {
+        override suspend fun send(message: String, email: String): DataResult<Unit> = send.invoke(message, email)
+    }), backend)
 
     private fun FeedbackViewModel.event(event: FeedbackEvent) = uiState.value.eventSink(event)
 }

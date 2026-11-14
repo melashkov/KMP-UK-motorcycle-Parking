@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,6 +91,7 @@ private fun BaysMapContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val placeSearch = rememberMapPlaceSearchState(uiState.eventSink)
+    DisposableEffect(placeSearch) { onDispose { placeSearch.cancelPendingNavigation() } }
     val locationPermission = rememberLocationPermissionState()
     val locationState = if (locationPermission.granted) {
         rememberLocationState(headingProvider = rememberDefaultHeadingProvider())
@@ -157,7 +159,7 @@ private fun BaysMapContent(
         }
     }
 
-    LaunchedEffect(cameraState) {
+    LaunchedEffect(cameraState, uiState.eventSink) {
         cameraState.awaitViewport()
         cameraState.currentViewport()
             ?.let { eventSink(MapUiEvent.InitialViewport(it)) }

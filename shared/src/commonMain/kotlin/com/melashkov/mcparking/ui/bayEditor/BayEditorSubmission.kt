@@ -26,7 +26,6 @@ import ukmotorcycleparking.shared.generated.resources.action_done
 import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_edit
 import ukmotorcycleparking.shared.generated.resources.bay_editor_submit_new
 import ukmotorcycleparking.shared.generated.resources.bay_editor_submission_error_title
-import ukmotorcycleparking.shared.generated.resources.debug_api_restart_required
 import ukmotorcycleparking.shared.generated.resources.submission_success_add_message
 import ukmotorcycleparking.shared.generated.resources.submission_success_edit_message
 import ukmotorcycleparking.shared.generated.resources.submission_success_title
@@ -35,7 +34,6 @@ import ukmotorcycleparking.shared.generated.resources.submission_success_title
 internal fun EditorSubmitBar(
     mode: BayEditorMode,
     isSubmitting: Boolean,
-    restartRequired: Boolean,
     submissionError: AppError?,
     onSubmit: () -> Unit,
 ) {
@@ -52,15 +50,9 @@ internal fun EditorSubmitBar(
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
             }
-            if (restartRequired) {
-                Text(
-                    stringResource(Res.string.debug_api_restart_required),
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-            }
             Button(
                 onClick = onSubmit,
-                enabled = !isSubmitting && !restartRequired,
+                enabled = !isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (isSubmitting) {

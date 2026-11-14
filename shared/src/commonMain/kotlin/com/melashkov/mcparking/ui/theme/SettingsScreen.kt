@@ -78,28 +78,18 @@ private fun DebugApiSettings() {
     val backend = koinInject<DebugApiBackend>()
     if (!backend.enabled) return
     val selection by backend.selection.collectAsState()
-    val activeBackend = debugApiLabel(selection.activeLocal)
     HorizontalDivider(Modifier.padding(vertical = 24.dp))
     Text(stringResource(Res.string.debug_api_title), style = MaterialTheme.typography.titleLarge)
-    Text(stringResource(Res.string.debug_api_active, activeBackend), modifier = Modifier.padding(top = 8.dp))
-    if (selection.restartRequired) {
-        Text(stringResource(Res.string.debug_api_restart_required), modifier = Modifier.padding(top = 8.dp))
-    }
-    Text(
-        stringResource(Res.string.debug_api_next_launch),
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(top = 12.dp),
-    )
     Column(Modifier.selectableGroup()) {
         listOf(false, true).forEach { local ->
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                    .selectable(selection.nextLaunchLocal == local, role = Role.RadioButton, onClick = {
+                    .selectable(selection.local == local, role = Role.RadioButton, onClick = {
                         backend.selectLocal(local)
                     }).padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                RadioButton(selected = selection.nextLaunchLocal == local, onClick = null)
+                RadioButton(selected = selection.local == local, onClick = null)
                 Text(
                     debugApiLabel(local),
                     modifier = Modifier.padding(start = 12.dp),

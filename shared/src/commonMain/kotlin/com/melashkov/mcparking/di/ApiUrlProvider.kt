@@ -19,17 +19,16 @@ interface ApiUrlProvider {
 internal fun apiUrlProvider(
     environment: ApiEnvironment,
 ): ApiUrlProvider =
-    DefaultApiUrlProvider(
-        baseUrl =
-            when (environment) {
+    apiUrlProvider { environment }
+
+internal fun apiUrlProvider(environment: () -> ApiEnvironment): ApiUrlProvider =
+    object : ApiUrlProvider {
+        override val baseUrl: String
+            get() = when (environment()) {
                 ApiEnvironment.Production -> PRODUCTION_API_URL
                 ApiEnvironment.LocalhostDevelopment -> LOCALHOST_DEVELOPMENT_API_URL
                 ApiEnvironment.AndroidEmulatorDevelopment -> ANDROID_EMULATOR_DEVELOPMENT_API_URL
-            },
-    )
-
-private data class DefaultApiUrlProvider(
-    override val baseUrl: String,
-) : ApiUrlProvider
+            }
+    }
 
 internal expect fun platformApiUrlProvider(scope: Scope): ApiUrlProvider

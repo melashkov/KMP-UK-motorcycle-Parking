@@ -6,13 +6,15 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.http.encodedPath
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+
+internal fun testDebugApiBackend(enabled: Boolean = false): DebugApiBackend =
+    DebugApiBackend(DebugApiPreferences(MemoryPreferenceStore()), enabled)
 
 class DebugApiPreferencesTest {
     @Test
@@ -21,57 +23,65 @@ class DebugApiPreferencesTest {
         store.putBoolean("local_development", true)
         val backend = DebugApiBackend(DebugApiPreferences(store), enabled = false)
         backend.selectLocal(false)
+        backend.selectLocal(true)
 
         assertEquals(ApiEnvironment.Production, backend.activeEnvironment(ApiEnvironment.AndroidEmulatorDevelopment))
-        assertFalse(backend.selection.value.restartRequired)
+        assertEquals(DebugApiSelection(local = false), backend.selection.value)
         assertTrue(store.getBoolean("local_development"))
     }
 
     @Test
-    fun backendChangesOnlyOnRestartAndChoosingActiveBackendCancelsPendingSwitch() {
+    fun liveSelectionPersistsAndOnlyChangesRevisionOnAnActualSwitch() {
         val store = MemoryPreferenceStore()
         val backend = DebugApiBackend(DebugApiPreferences(store), enabled = true)
         val local = ApiEnvironment.LocalhostDevelopment
 
         backend.selectLocal(true)
-        assertTrue(backend.selection.value.restartRequired)
-        assertEquals(ApiEnvironment.Production, backend.activeEnvironment(local))
-
+        backend.selectLocal(true)
+        assertEquals(DebugApiSelection(local = true, revision = 1), backend.selection.value)
+        assertEquals(local, backend.activeEnvironment(local))
         assertTrue(store.getBoolean("local_development"))
-        val restarted = DebugApiBackend(DebugApiPreferences(store), enabled = true)
-        assertFalse(restarted.selection.value.restartRequired)
-        assertEquals(local, restarted.activeEnvironment(local))
+        assertEquals(local, DebugApiBackend(DebugApiPreferences(store), enabled = true).activeEnvironment(local))
 
-        restarted.selectLocal(false)
-        assertTrue(restarted.selection.value.restartRequired)
-        assertEquals(local, restarted.activeEnvironment(local))
-        restarted.selectLocal(true)
-        assertFalse(restarted.selection.value.restartRequired)
+        backend.selectLocal(false)
+        assertEquals(DebugApiSelection(local = false, revision = 2), backend.selection.value)
+        assertEquals(ApiEnvironment.Production, backend.activeEnvironment(local))
     }
 
     @Test
-    fun pendingSwitchBlocksReportsAndFeedbackBeforeTheyReachTheHttpEngine() = runTest {
-        val backend = DebugApiBackend(DebugApiPreferences(MemoryPreferenceStore()), enabled = true)
-        val requests = mutableListOf<String>()
+    fun oneClientRoutesNewRequestsAndRejectsSubmissionsFromAnEarlierSelection() = runTest {
+        val backend = testDebugApiBackend(enabled = true)
+        val provider = apiUrlProvider { backend.activeEnvironment(ApiEnvironment.AndroidEmulatorDevelopment) }
+        val urls = mutableListOf<String>()
         val client = HttpClient(MockEngine { request ->
-            requests += request.url.encodedPath
+            urls += request.url.toString()
             respond("{}")
         }) {
+            apiDefaultRequest { provider.baseUrl }
             install(DebugApiSubmissionGuard) { this.backend = backend }
         }
 
         try {
-            val url = "https://example.com/api/"
+            val original = backend.selection.value
+            client.get("bounds.php")
             backend.selectLocal(true)
-            assertFailsWith<IllegalStateException> { client.post(url + "report.php") }
-            assertFailsWith<IllegalStateException> { client.post(url + "feedback.php") }
-            client.get(url + "bounds.php")
-            assertEquals(listOf("/api/bounds.php"), requests)
-
+            assertFailsWith<IllegalStateException> {
+                withContext(ApiSubmissionBackend(original)) { client.post("report.php") }
+            }
+            withContext(ApiSubmissionBackend(backend.selection.value)) { client.post("feedback.php") }
             backend.selectLocal(false)
-            client.post(url + "report.php")
-            client.post(url + "feedback.php")
-            assertEquals(listOf("/api/bounds.php", "/api/report.php", "/api/feedback.php"), requests)
+            assertFailsWith<IllegalStateException> {
+                withContext(ApiSubmissionBackend(original)) { client.post("report.php") }
+            }
+            client.get("bounds.php")
+            assertEquals(
+                listOf(
+                    "https://melashkov.com/api/bounds.php",
+                    "http://10.0.2.2:8080/api/feedback.php",
+                    "https://melashkov.com/api/bounds.php",
+                ),
+                urls,
+            )
         } finally {
             client.close()
         }

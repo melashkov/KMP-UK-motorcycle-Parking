@@ -17,9 +17,9 @@ import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.not
 import org.maplibre.compose.expressions.value.SymbolAnchor
+import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.sources.GeoJsonSource
-import org.maplibre.compose.util.ClickResult
 import org.maplibre.compose.util.MaplibreComposable
 
 @Composable

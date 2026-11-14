@@ -1,6 +1,6 @@
 [versions]
-agp = "9.0.1"
-android-compileSdk = "36"
+agp = "9.3.1"
+android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "36"
 androidx-activity = "1.13.0"
@@ -9,12 +9,14 @@ androidx-core = "1.19.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.11.0-beta01"
 androidx-testExt = "1.3.0"
-composeMultiplatform = "1.11.1"
+composeMultiplatform = "1.12.1"
 junit = "4.13.2"
+robolectric = "4.17"
 kotlin = "2.4.10"
-material3 = "1.11.0-alpha07"
+material3 = "1.12.0-alpha03"
+maplibre = "0.20.0"
 koin-bom = "4.2.2"  # Stable version
-koin-plugin = "1.1.0"
+koin-plugin = "1.2.1"
 materialIconsExtended = "1.7.3"
 navigation3 = "1.1.1"
 ktor = "3.5.2"
@@ -25,6 +27,7 @@ kotlinx-coroutines = "1.11.0"
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
@@ -41,7 +44,8 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
-maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version = "0.13.1" }
+maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.ref = "maplibre" }
+maplibre-runtime-android = { module = "org.maplibre.compose:maplibre-compose-runtime-opengl-android", version.ref = "maplibre" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-annotations = { module = "io.insert-koin:koin-annotations" }
@@ -72,5 +76,4 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-spmForKmp = { id = "io.github.frankois944.spmForKmp", version = "1.9.4" } # Use the latest compatible version
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin" }

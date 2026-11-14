@@ -39,6 +39,48 @@ class SearchParkingBaysUseCaseTest {
     }
 
     @Test
+    fun antimeridianSearchCombinesBothSidesAndDeduplicatesBays() = runTest {
+        val bounds = TestBounds.copy(west = 179.95, east = -179.99)
+        val sharedBay = testBay(id = "shared")
+        val westBay = testBay(id = "west")
+        val eastBay = testBay(id = "east")
+        val repository = FakeParkingSearchRepository(
+            searchResult = DataResult.Success(listOf(westBay, sharedBay)),
+        )
+        repository.beforeSearch = {
+            if (repository.searchedBounds.size == 2) {
+                repository.searchResult = DataResult.Success(listOf(eastBay, sharedBay))
+            }
+        }
+
+        val result = SearchParkingBaysUseCase(repository)(testViewport(bounds = bounds))
+
+        assertEquals(
+            listOf(bounds.copy(east = 180.0), bounds.copy(west = -180.0)),
+            repository.searchedBounds,
+        )
+        assertEquals(listOf(westBay, sharedBay, eastBay), assertIs<SearchParkingResult.Success>(result).bays)
+    }
+
+    @Test
+    fun failureOnSecondSideDoesNotReturnPartialResults() = runTest {
+        val bounds = TestBounds.copy(west = 179.95, east = -179.99)
+        val repository = FakeParkingSearchRepository(
+            searchResult = DataResult.Success(listOf(testBay())),
+        )
+        repository.beforeSearch = {
+            if (repository.searchedBounds.size == 2) {
+                repository.searchResult = DataResult.Failure(AppError.ConnectionFailed)
+            }
+        }
+
+        val result = SearchParkingBaysUseCase(repository)(testViewport(bounds = bounds))
+
+        assertEquals(2, repository.searchedBounds.size)
+        assertEquals(SearchParkingResult.Failure(AppError.ConnectionFailed), result)
+    }
+
+    @Test
     fun repositoryFailureIsPreserved() = runTest {
         val repository = FakeParkingSearchRepository(
             searchResult = DataResult.Failure(AppError.ConnectionFailed),

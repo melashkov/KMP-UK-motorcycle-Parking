@@ -14,34 +14,45 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
-import com.melashkov.mcparking.ui.theme.parkingMapStyle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.melashkov.mcparking.domain.entity.GeoBounds
-import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.permissions.rememberLocationPermissionState
+import com.melashkov.mcparking.ui.shared.MapAttributionSpace
+import com.melashkov.mcparking.ui.shared.ParkingMapOverlay
+import com.melashkov.mcparking.ui.shared.toGeoCoordinate
 import com.melashkov.mcparking.ui.support.MapOverflowMenu
-import com.melashkov.mcparking.ui.shared.UserLocation
-import kotlinx.coroutines.FlowPreview
+import com.melashkov.mcparking.ui.theme.parkingMapStyle
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.compose.camera.CameraState
-import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.compose.camera.CameraUpdate
+import org.maplibre.compose.interaction.MapInteractions
+import org.maplibre.compose.layers.LocationIndicatorLayer
+import org.maplibre.compose.location.rememberDefaultHeadingProvider
+import org.maplibre.compose.location.rememberLocationState
+import org.maplibre.compose.map.LocalMapState
+import org.maplibre.compose.map.MapState
 import org.maplibre.compose.map.MaplibreMap
+import org.maplibre.compose.map.rememberMapState
 import org.maplibre.spatialk.geojson.Position
 import ukmotorcycleparking.shared.generated.resources.Res
 import ukmotorcycleparking.shared.generated.resources.accessibility_my_location
@@ -73,71 +84,113 @@ fun BaysMap(
     }
 }
 
-@OptIn(FlowPreview::class)
 @Composable
 private fun BaysMapContent(
     uiState: MapUiState,
 ) {
-    val cameraState = rememberCameraState(firstPosition = InitialCameraPosition)
     val coroutineScope = rememberCoroutineScope()
-    val placeSearch = rememberMapPlaceSearchState(cameraState, uiState.eventSink)
-
+    val placeSearch = rememberMapPlaceSearchState(uiState.eventSink)
     val locationPermission = rememberLocationPermissionState()
+    val locationState = if (locationPermission.granted) {
+        rememberLocationState(headingProvider = rememberDefaultHeadingProvider())
+    } else {
+        null
+    }
     var locateWhenGranted by remember { mutableStateOf(false) }
-    var locateRequest by remember { mutableIntStateOf(0) }
+    var locateJob by remember { mutableStateOf<Job?>(null) }
+    val eventSink by rememberUpdatedState(uiState.eventSink)
+    val cancelLocate = {
+        locateWhenGranted = false
+        locateJob?.cancel()
+        locateJob = null
+    }
 
-    LaunchedEffect(locationPermission.granted, locationPermission) {
-        if (locationPermission.granted && locateWhenGranted) {
+    val cameraState = rememberMapState(
+        baseStyle = parkingMapStyle(),
+        initialCameraPosition = InitialCameraPosition,
+    ) {
+        val cameraState = checkNotNull(LocalMapState.current)
+        placeSearch.destination?.let { DestinationMarker(it) }
+        ParkingBayMarkers(
+            markers = uiState.parkingBays,
+            onMarkerClick = {
+                uiState.eventSink(MapUiEvent.SelectedBay(it))
+            },
+            onClusterClick = { clusterPosition ->
+                cancelLocate()
+                placeSearch.cancelPendingNavigation()
+                coroutineScope.launch {
+                    cameraState.animateCamera(
+                        CameraUpdate(
+                            center = clusterPosition,
+                            zoom = (cameraState.cameraPosition.zoom + ClusterZoomIncrement)
+                                .coerceAtMost(MaxClusterTapZoom),
+                        ),
+                    )
+                }
+            },
+        )
+
+        if (locationState != null) {
+            LocationIndicatorLayer(id = "user", locationState = locationState)
+        }
+    }
+
+    fun recenterOnUser() {
+        if (locationState == null) return
+        placeSearch.cancelPendingNavigation()
+        locateJob?.cancel()
+        locateJob = coroutineScope.launch {
+            val location = withTimeoutOrNull(LocateFixTimeout) {
+                snapshotFlow { locationState.lastLocation }.filterNotNull().first()
+            } ?: return@launch
+            cameraState.animateCamera(CameraUpdate(center = location.position, zoom = 15.0))
+        }
+    }
+
+    LaunchedEffect(locationState) {
+        if (locationState == null) {
+            locateJob?.cancel()
+        } else if (locateWhenGranted) {
             locateWhenGranted = false
-            locateRequest++
+            recenterOnUser()
         }
     }
 
     LaunchedEffect(cameraState) {
-        cameraState.awaitProjection()
+        cameraState.awaitViewport()
         cameraState.currentViewport()
-            ?.let { uiState.eventSink(MapUiEvent.InitialViewport(it)) }
+            ?.let { eventSink(MapUiEvent.InitialViewport(it)) }
 
         snapshotFlow { cameraState.isCameraMoving }
             .dropWhile { !it }
             .filter { !it }
             .collect {
                 cameraState.currentViewport()
-                    ?.let { uiState.eventSink(MapUiEvent.ViewportChanged(it)) }
+                    ?.let { eventSink(MapUiEvent.ViewportChanged(it)) }
             }
     }
 
     Box(Modifier.fillMaxSize()) {
         MaplibreMap(
-            baseStyle = parkingMapStyle(),
-            cameraState = cameraState
-        ) {
-            placeSearch.destination?.let { DestinationMarker(it) }
-            ParkingBayMarkers(
-                markers = uiState.parkingBays,
-                onMarkerClick = {
-                    uiState.eventSink(MapUiEvent.SelectedBay(it))
-                },
-                onClusterClick = { clusterPosition ->
-                    coroutineScope.launch {
-                        cameraState.animateTo(
-                            cameraState.position.copy(
-                                target = clusterPosition,
-                                zoom = (cameraState.position.zoom + ClusterZoomIncrement)
-                                    .coerceAtMost(MaxClusterTapZoom),
-                            ),
-                        )
-                    }
-                },
-            )
-
-            if (locationPermission.granted) {
-                UserLocation(
-                    camera = cameraState,
-                    locateRequest = locateRequest,
-                )
-            }
-        }
+            state = cameraState,
+            interactions = MapInteractions {
+                camera {
+                    pan { onStart(cancelLocate) }
+                    zoom { onStart(cancelLocate) }
+                    rotate { onStart(cancelLocate) }
+                    pitch { onStart(cancelLocate) }
+                }
+            },
+            overlay = {
+                ParkingMapOverlay(cameraState) {
+                    MapOverflowMenu(onAddBay = {
+                        val coordinate = cameraState.cameraPosition.center.toGeoCoordinate()
+                        eventSink(MapUiEvent.AddBay(coordinate))
+                    })
+                }
+            },
+        )
 
         SmallFloatingActionButton(
             onClick = placeSearch::openSearch,
@@ -149,9 +202,12 @@ private fun BaysMapContent(
 
         if (placeSearch.isSearchVisible) {
             PlacesSearchScreen(
-                near = cameraState.position.target.toGeoCoordinate(),
+                near = cameraState.cameraPosition.center.toGeoCoordinate(),
                 onDismiss = placeSearch::dismissSearch,
-                onSelect = placeSearch::selectPlace,
+                onSelect = { place ->
+                    cancelLocate()
+                    placeSearch.selectPlace(place, cameraState::moveToDestination)
+                },
             )
         }
 
@@ -160,7 +216,7 @@ private fun BaysMapContent(
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp),
+                .padding(bottom = MapAttributionSpace + 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             MapSearchMessage(
@@ -192,21 +248,12 @@ private fun BaysMapContent(
             )
         }
 
-        MapOverflowMenu(
-            onAddBay = {
-                uiState.eventSink(MapUiEvent.AddBay(cameraState.position.target.toGeoCoordinate()))
-            },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(16.dp),
-        )
-
         SmallFloatingActionButton(
             onClick = {
-                if (locationPermission.granted) {
-                    locateRequest++
+                if (locationState != null) {
+                    recenterOnUser()
                 } else {
+                    placeSearch.cancelPendingNavigation()
                     locateWhenGranted = true
                     locationPermission.request()
                 }
@@ -214,7 +261,8 @@ private fun BaysMapContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = MapAttributionSpace + 16.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.MyLocation,
@@ -225,7 +273,7 @@ private fun BaysMapContent(
 }
 
 private val InitialCameraPosition = CameraPosition(
-    target = Position(
+    center = Position(
         latitude = 51.512682148762195,
         longitude = -0.0904589182234332,
     ),
@@ -234,23 +282,21 @@ private val InitialCameraPosition = CameraPosition(
 
 private const val ClusterZoomIncrement = 2.0
 private const val MaxClusterTapZoom = 15.0
+private val LocateFixTimeout = 10.seconds
 
-
-internal fun CameraState.currentViewport(): MapViewport? {
-    val bounds = projection?.queryVisibleBoundingBox()
-        ?: return null
+internal fun MapState.currentViewport(): MapViewport? {
+    val viewport = viewport ?: return null
+    // MapLibre wraps world copies and uses east < west for an antimeridian crossing.
+    val bounds = viewport.visibleBounds.toBoundingBox()
 
     return MapViewport(
-        center = position.target.toGeoCoordinate(),
+        center = viewport.cameraPosition.center.toGeoCoordinate(),
         bounds = GeoBounds(
             west = bounds.west,
             south = bounds.south,
             east = bounds.east,
             north = bounds.north
         ),
-        zoom = position.zoom,
+        zoom = viewport.cameraPosition.zoom,
     )
 }
-
-private fun Position.toGeoCoordinate(): GeoCoordinate =
-    GeoCoordinate(latitude = latitude, longitude = longitude)

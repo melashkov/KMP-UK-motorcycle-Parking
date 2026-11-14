@@ -34,15 +34,18 @@ import com.melashkov.mcparking.ui.shared.ParkingMapOverlay
 import com.melashkov.mcparking.ui.shared.toGeoCoordinate
 import com.melashkov.mcparking.ui.support.MapOverflowMenu
 import com.melashkov.mcparking.ui.theme.parkingMapStyle
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.CameraUpdate
+import org.maplibre.compose.interaction.MapInteractions
 import org.maplibre.compose.layers.LocationIndicatorLayer
 import org.maplibre.compose.location.rememberDefaultHeadingProvider
 import org.maplibre.compose.location.rememberLocationState
@@ -96,6 +99,11 @@ private fun BaysMapContent(
     var locateWhenGranted by remember { mutableStateOf(false) }
     var locateJob by remember { mutableStateOf<Job?>(null) }
     val eventSink by rememberUpdatedState(uiState.eventSink)
+    val cancelLocate = {
+        locateWhenGranted = false
+        locateJob?.cancel()
+        locateJob = null
+    }
 
     val cameraState = rememberMapState(
         baseStyle = parkingMapStyle(),
@@ -109,8 +117,7 @@ private fun BaysMapContent(
                 uiState.eventSink(MapUiEvent.SelectedBay(it))
             },
             onClusterClick = { clusterPosition ->
-                locateWhenGranted = false
-                locateJob?.cancel()
+                cancelLocate()
                 placeSearch.cancelPendingNavigation()
                 coroutineScope.launch {
                     cameraState.animateCamera(
@@ -134,7 +141,9 @@ private fun BaysMapContent(
         placeSearch.cancelPendingNavigation()
         locateJob?.cancel()
         locateJob = coroutineScope.launch {
-            val location = snapshotFlow { locationState.lastLocation }.filterNotNull().first()
+            val location = withTimeoutOrNull(LocateFixTimeout) {
+                snapshotFlow { locationState.lastLocation }.filterNotNull().first()
+            } ?: return@launch
             cameraState.animateCamera(CameraUpdate(center = location.position, zoom = 15.0))
         }
     }
@@ -165,6 +174,14 @@ private fun BaysMapContent(
     Box(Modifier.fillMaxSize()) {
         MaplibreMap(
             state = cameraState,
+            interactions = MapInteractions {
+                camera {
+                    pan { onStart(cancelLocate) }
+                    zoom { onStart(cancelLocate) }
+                    rotate { onStart(cancelLocate) }
+                    pitch { onStart(cancelLocate) }
+                }
+            },
             overlay = {
                 ParkingMapOverlay(cameraState) {
                     MapOverflowMenu(onAddBay = {
@@ -188,8 +205,7 @@ private fun BaysMapContent(
                 near = cameraState.cameraPosition.center.toGeoCoordinate(),
                 onDismiss = placeSearch::dismissSearch,
                 onSelect = { place ->
-                    locateWhenGranted = false
-                    locateJob?.cancel()
+                    cancelLocate()
                     placeSearch.selectPlace(place, cameraState::moveToDestination)
                 },
             )
@@ -266,9 +282,11 @@ private val InitialCameraPosition = CameraPosition(
 
 private const val ClusterZoomIncrement = 2.0
 private const val MaxClusterTapZoom = 15.0
+private val LocateFixTimeout = 10.seconds
 
 internal fun MapState.currentViewport(): MapViewport? {
     val viewport = viewport ?: return null
+    // MapLibre wraps world copies and uses east < west for an antimeridian crossing.
     val bounds = viewport.visibleBounds.toBoundingBox()
 
     return MapViewport(

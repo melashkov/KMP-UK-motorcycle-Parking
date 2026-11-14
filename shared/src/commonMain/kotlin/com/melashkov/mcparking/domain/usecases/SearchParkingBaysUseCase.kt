@@ -19,15 +19,23 @@ class SearchParkingBaysUseCase(
             return SearchParkingResult.AreaTooLarge
         }
 
-        return when (
-            val result = repository.getParkingBays(viewport.bounds)
-        ) {
-            is DataResult.Success ->
-                SearchParkingResult.Success(result.value)
-
-            is DataResult.Failure ->
-                SearchParkingResult.Failure(result.error)
+        val bounds = viewport.bounds
+        val searchAreas = if (bounds.east < bounds.west) {
+            listOf(bounds.copy(east = 180.0), bounds.copy(west = -180.0))
+        } else {
+            listOf(bounds)
         }
+
+        val bays = mutableListOf<ParkingBay>()
+        for (area in searchAreas) {
+            when (val result = repository.getParkingBays(area)) {
+                is DataResult.Success -> bays.addAll(result.value)
+                is DataResult.Failure -> return SearchParkingResult.Failure(result.error)
+            }
+        }
+        return SearchParkingResult.Success(
+            if (searchAreas.size == 1) bays else bays.distinctBy(ParkingBay::id),
+        )
     }
 
     companion object {

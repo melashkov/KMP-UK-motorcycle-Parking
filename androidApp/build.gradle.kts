@@ -52,13 +52,23 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    signingConfigs {
-        create("release") {
-            storeFile = System.getenv("RELEASE_KEYSTORE")?.let(::file)
-            storePassword = System.getenv("RELEASE_STORE_PASSWORD")
-            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+    val releaseKeystore = providers.environmentVariable("RELEASE_KEYSTORE").orNull
+    val releaseStorePassword = providers.environmentVariable("RELEASE_STORE_PASSWORD").orNull
+    val releaseKeyAlias = providers.environmentVariable("RELEASE_KEY_ALIAS").orNull
+    val releaseKeyPassword = providers.environmentVariable("RELEASE_KEY_PASSWORD").orNull
+    val releaseCredentials = listOf(releaseKeystore, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+    val releaseSigning = if (releaseCredentials.any { !it.isNullOrBlank() }) {
+        require(releaseCredentials.none { it.isNullOrBlank() }) {
+            "Set all four RELEASE_* signing variables for a signed Android release."
         }
+        signingConfigs.create("release") {
+            storeFile = releaseKeystore?.let(::file)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
+        }
+    } else {
+        null
     }
     buildTypes {
         debug {
@@ -68,7 +78,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             ndk.debugSymbolLevel = "FULL"
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = releaseSigning
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

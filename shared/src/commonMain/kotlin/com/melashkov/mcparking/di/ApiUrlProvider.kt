@@ -19,15 +19,21 @@ interface ApiUrlProvider {
 internal fun apiUrlProvider(
     environment: ApiEnvironment,
 ): ApiUrlProvider =
-    apiUrlProvider { environment }
+    apiUrlProvider(environment) { true }
 
-internal fun apiUrlProvider(environment: () -> ApiEnvironment): ApiUrlProvider =
+internal fun apiUrlProvider(
+    localEnvironment: ApiEnvironment,
+    useLocalBackend: () -> Boolean,
+): ApiUrlProvider =
     object : ApiUrlProvider {
         override val baseUrl: String
-            get() = when (environment()) {
-                ApiEnvironment.Production -> PRODUCTION_API_URL
-                ApiEnvironment.LocalhostDevelopment -> LOCALHOST_DEVELOPMENT_API_URL
-                ApiEnvironment.AndroidEmulatorDevelopment -> ANDROID_EMULATOR_DEVELOPMENT_API_URL
+            get() {
+                val environment = if (useLocalBackend()) localEnvironment else ApiEnvironment.Production
+                return when (environment) {
+                    ApiEnvironment.Production -> PRODUCTION_API_URL
+                    ApiEnvironment.LocalhostDevelopment -> LOCALHOST_DEVELOPMENT_API_URL
+                    ApiEnvironment.AndroidEmulatorDevelopment -> ANDROID_EMULATOR_DEVELOPMENT_API_URL
+                }
             }
     }
 

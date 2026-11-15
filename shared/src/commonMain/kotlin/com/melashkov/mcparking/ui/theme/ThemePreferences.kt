@@ -1,11 +1,18 @@
 package com.melashkov.mcparking.ui.theme
 
 import com.melashkov.mcparking.data.preferences.PreferenceStore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 internal class ThemePreferences(private val store: PreferenceStore) {
-    var mode: ThemeMode
-        get() = themeModeFromStorage(store.getString("theme_mode").orEmpty())
-        set(value) = store.putString("theme_mode", value.name)
+    private val _mode = MutableStateFlow(themeModeFromStorage(store.getString("theme_mode").orEmpty()))
+    val mode = _mode.asStateFlow()
+
+    fun setMode(mode: ThemeMode) {
+        if (_mode.value == mode) return
+        store.putString("theme_mode", mode.name)
+        _mode.value = mode
+    }
 }
 
 internal fun themeModeFromStorage(value: String): ThemeMode =

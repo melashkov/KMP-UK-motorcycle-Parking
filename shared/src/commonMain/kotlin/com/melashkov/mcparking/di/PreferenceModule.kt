@@ -20,5 +20,8 @@ class PreferenceModule {
 
     @Singleton
     internal fun provideDebugApiPreferences(scope: Scope): DebugApiPreferences =
-        DebugApiPreferences(platformPreferenceStore(scope, PreferenceNamespace.DebugApi))
+        DebugApiPreferences(
+            platformPreferenceStore(scope, PreferenceNamespace.DebugApi),
+            isDebug = platformIsDebugBuild(scope),
+        )
 }

@@ -10,12 +10,13 @@ class PreferenceCompatibilityTest {
     @Test
     fun themeReadsAndWritesTheExistingModeKey() {
         val store = MemoryPreferenceStore()
-        val preferences = ThemePreferences(store)
-        assertEquals(ThemeMode.SYSTEM, preferences.mode)
+        assertEquals(ThemeMode.SYSTEM, ThemePreferences(store).mode.value)
         store.putString("theme_mode", "DARK")
-        assertEquals(ThemeMode.DARK, preferences.mode)
+        val preferences = ThemePreferences(store)
+        assertEquals(ThemeMode.DARK, preferences.mode.value)
 
-        preferences.mode = ThemeMode.LIGHT
+        preferences.setMode(ThemeMode.LIGHT)
+        assertEquals(ThemeMode.LIGHT, preferences.mode.value)
         assertEquals("LIGHT", store.getString("theme_mode"))
     }
 

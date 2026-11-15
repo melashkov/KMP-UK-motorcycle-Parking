@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.melashkov.mcparking.domain.entity.MapViewport
@@ -66,7 +67,10 @@ internal fun rememberMapPlaceSearchState(
     onEvent: (MapUiEvent) -> Unit,
 ): MapPlaceSearchState {
     val scope = rememberCoroutineScope()
-    return remember(scope, onEvent) { MapPlaceSearchState(scope, onEvent) }
+    val currentOnEvent by rememberUpdatedState(onEvent)
+    return remember(scope) {
+        MapPlaceSearchState(scope, onEvent = { currentOnEvent(it) })
+    }
 }
 
 internal suspend fun MapState.moveToDestination(place: Place): MapViewport? {

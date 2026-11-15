@@ -4,27 +4,23 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
 import org.maplibre.compose.style.BaseStyle
 
-internal data class ThemeSettings(val mode: ThemeMode, val setMode: (ThemeMode) -> Unit)
-internal val LocalThemeSettings = staticCompositionLocalOf { ThemeSettings(ThemeMode.SYSTEM) {} }
 internal val LocalDarkTheme = staticCompositionLocalOf { false }
 
 @Composable
 internal fun ParkingAppTheme(content: @Composable () -> Unit) {
     val preferences = koinInject<ThemePreferences>()
-    var mode by remember(preferences) { mutableStateOf(preferences.mode) }
+    val mode by preferences.mode.collectAsStateWithLifecycle()
     val dark = mode.isDark(isSystemInDarkTheme())
     ApplyPlatformTheme(dark, mode == ThemeMode.SYSTEM)
-    CompositionLocalProvider(
-        LocalDarkTheme provides dark,
-        LocalThemeSettings provides ThemeSettings(mode) {
-            preferences.mode = it
-            mode = it
-        },
-    ) {
+    CompositionLocalProvider(LocalDarkTheme provides dark) {
         MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme(), content = content)
     }
 }

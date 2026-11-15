@@ -2,8 +2,6 @@ package com.melashkov.mcparking.ui.baysMap
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.melashkov.mcparking.di.DebugApiBackend
-import com.melashkov.mcparking.di.DebugApiSelection
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.MapViewport
 import com.melashkov.mcparking.domain.entity.ParkingBay
@@ -53,40 +51,20 @@ data class MapUiState(
 )
 
 @KoinViewModel
-internal class BaysMapViewModel(
+class BaysMapViewModel(
     private val searchParkingBays: SearchParkingBaysUseCase,
     private val shouldShowSearchThisArea: ShouldShowSearchThisAreaUseCase,
     private val appNavigationSink: AppNavigationSink,
-    private val backend: DebugApiBackend,
 ) : ViewModel() {
-    private var activeBackend = backend.selection.value
-    private val _uiState = MutableStateFlow(stateForBackend(activeBackend, viewport = null))
+
+    private val eventSink: (MapUiEvent) -> Unit = ::onEvent
+
+    private val _uiState = MutableStateFlow(MapUiState(eventSink = eventSink))
     val uiState = _uiState.asStateFlow()
 
     private var hasSearchedInitialArea = false
     private var lastSearchedViewport: MapViewport? = null
     private var searchJob: Job? = null
-
-    init {
-        viewModelScope.launch {
-            backend.selection.collect { selection ->
-                if (selection != activeBackend) {
-                    searchJob?.cancel()
-                    searchJob = null
-                    lastSearchedViewport = null
-                    activeBackend = selection
-                    val viewport = _uiState.value.currentViewport
-                    _uiState.value = stateForBackend(selection, viewport)
-                    if (viewport != null) searchCurrentArea()
-                }
-            }
-        }
-    }
-
-    private fun stateForBackend(selection: DebugApiSelection, viewport: MapViewport?) =
-        MapUiState(currentViewport = viewport, eventSink = { event ->
-            if (backend.selection.value == selection) onEvent(event)
-        })
 
     private fun onEvent(event: MapUiEvent) {
         when (event) {
@@ -104,7 +82,6 @@ internal class BaysMapViewModel(
                     AddBayRoute(
                         latitude = event.location.latitude,
                         longitude = event.location.longitude,
-                        backend = activeBackend,
                     ),
                 )
             }
@@ -144,7 +121,6 @@ internal class BaysMapViewModel(
                         type = event.bay.type.value,
                         latitude = event.bay.position.latitude,
                         longitude = event.bay.position.longitude,
-                        backend = activeBackend,
                     ),
                 )
             }
@@ -225,11 +201,9 @@ internal class BaysMapViewModel(
             )
         }
 
-        val searchBackend = activeBackend
         searchJob = viewModelScope.launch {
             val result = searchParkingBays(viewport)
             ensureActive()
-            if (searchBackend != backend.selection.value) return@launch
             when (result) {
                 is SearchParkingResult.Success -> {
                     lastSearchedViewport = viewport

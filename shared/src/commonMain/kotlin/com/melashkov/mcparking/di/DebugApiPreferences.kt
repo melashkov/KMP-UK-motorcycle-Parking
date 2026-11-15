@@ -1,36 +1,31 @@
 package com.melashkov.mcparking.di
 
 import com.melashkov.mcparking.data.preferences.PreferenceStore
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.Serializable
+import kotlin.concurrent.Volatile
 
-internal class DebugApiPreferences(private val store: PreferenceStore) {
-    var localDevelopment: Boolean
-        get() = store.getBoolean("local_development")
-        set(value) = store.putBoolean("local_development", value)
-}
-
-@Serializable
-internal data class DebugApiSelection(
-    val local: Boolean,
-    val revision: Long = 0,
-)
-
-internal class DebugApiBackend(
-    private val preferences: DebugApiPreferences,
-    val enabled: Boolean,
+internal class DebugApiPreferences(
+    private val store: PreferenceStore,
+    val isDebug: Boolean,
 ) {
-    private val _selection = MutableStateFlow(DebugApiSelection(enabled && preferences.localDevelopment))
-    val selection = _selection.asStateFlow()
 
-    fun selectLocal(local: Boolean) {
-        val current = _selection.value
-        if (!enabled || current.local == local) return
-        preferences.localDevelopment = local
-        _selection.value = DebugApiSelection(local, current.revision + 1)
+    @Volatile
+    var local: Boolean = false
+        private set
+
+    init {
+        if (isDebug) {
+            local = store.getBoolean("local_development")
+        }
     }
 
-    fun activeEnvironment(localEnvironment: ApiEnvironment): ApiEnvironment =
-        if (selection.value.local) localEnvironment else ApiEnvironment.Production
+    fun selectLocal(value: Boolean): Boolean {
+        if (isDebug) {
+            runCatching {
+                store.putBoolean("local_development", value)
+                local = value
+                return true
+            }
+        }
+        return false
+    }
 }

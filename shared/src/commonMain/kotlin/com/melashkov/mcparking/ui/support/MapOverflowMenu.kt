@@ -1,6 +1,5 @@
 package com.melashkov.mcparking.ui.support
 
-import com.melashkov.mcparking.ui.theme.SettingsScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocationAlt
@@ -16,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.melashkov.mcparking.ui.settings.SettingsRoute
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.*
@@ -68,7 +68,9 @@ internal fun MapOverflowMenu(
 
     if (feedbackVisible) FeedbackScreen(onDismiss = { feedbackVisible = false })
 
-    if (settingsVisible) SettingsScreen(onDismiss = { settingsVisible = false })
+    if (settingsVisible) {
+        SettingsRoute(onDismiss = { settingsVisible = false })
+    }
 
     if (page.isNotEmpty()) {
         ProjectInfoScreen(

@@ -47,9 +47,8 @@ python3 scripts/mock-api.py
 ```
 
 In a debug app, open **Settings → Debug API → Local development**. The next API
-request uses the selected backend. The map reloads the current area and clears
-results and drafts from the previous backend. Select **Production** to switch
-back.
+request uses the selected backend. Existing map results stay visible until the
+next parking search. Select **Production** to switch back.
 Android uses `http://10.0.2.2:8080/api/` (the emulator's host alias); the iOS simulator
 uses `http://127.0.0.1:8080/api/`. The server binds only to the computer's loopback
 interface. Local development currently supports the Android emulator and iOS

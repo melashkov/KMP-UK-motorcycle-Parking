@@ -5,20 +5,42 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.melashkov.mcparking.di.DebugApiBackend
 import com.melashkov.mcparking.domain.entity.GeoCoordinate
 import com.melashkov.mcparking.domain.entity.ParkingType
 import com.melashkov.mcparking.ui.bayEditor.BayEditorInitialData
 import com.melashkov.mcparking.ui.bayEditor.BayEditorMode
 import com.melashkov.mcparking.ui.bayEditor.BayEditorScreen
 import com.melashkov.mcparking.ui.bayEditor.BayEditorViewModel
-import org.koin.compose.koinInject
+import com.melashkov.mcparking.ui.navigation.AppRoute
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
+import kotlinx.serialization.modules.subclass
 import org.koin.compose.viewmodel.koinViewModel
+
+@Serializable
+data class AddBayRoute(
+    val latitude: Double,
+    val longitude: Double,
+) : AppRoute
+
+@Serializable
+data class EditBayRoute(
+    val bayId: String,
+    val title: String,
+    val description: String,
+    val type: Int,
+    val latitude: Double,
+    val longitude: Double,
+) : AppRoute
+
+internal fun PolymorphicModuleBuilder<NavKey>.registerBayEditorRoutes() {
+    subclass(AddBayRoute::class, AddBayRoute.serializer())
+    subclass(EditBayRoute::class, EditBayRoute.serializer())
+}
 
 internal fun EntryProviderScope<NavKey>.bayEditorEntries() {
     entry<AddBayRoute> { route ->
         BayEditorEntry(
-            route = route,
             initialData = BayEditorInitialData(
                 mode = BayEditorMode.Add,
                 location = GeoCoordinate(route.latitude, route.longitude),
@@ -28,7 +50,6 @@ internal fun EntryProviderScope<NavKey>.bayEditorEntries() {
 
     entry<EditBayRoute> { route ->
         BayEditorEntry(
-            route = route,
             initialData = BayEditorInitialData(
                 mode = BayEditorMode.Edit,
                 parentId = route.bayId,
@@ -42,11 +63,7 @@ internal fun EntryProviderScope<NavKey>.bayEditorEntries() {
 }
 
 @Composable
-private fun BayEditorEntry(route: BayEditorRoute, initialData: BayEditorInitialData) {
-    val backend = koinInject<DebugApiBackend>()
-    val selection by backend.selection.collectAsStateWithLifecycle()
-    if (route.backend != selection || route.backend != backend.selection.value) return
-
+private fun BayEditorEntry(initialData: BayEditorInitialData) {
     val viewModel = koinViewModel<BayEditorViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 

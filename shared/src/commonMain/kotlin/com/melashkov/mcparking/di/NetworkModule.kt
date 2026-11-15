@@ -17,10 +17,6 @@ import org.koin.core.scope.Scope
 class NetworkModule {
 
     @Singleton
-    internal fun provideDebugApiBackend(preferences: DebugApiPreferences, scope: Scope): DebugApiBackend =
-        DebugApiBackend(preferences, enabled = platformIsDebugBuild(scope))
-
-    @Singleton
     internal fun provideInstallationIdProvider(scope: Scope): InstallationIdProvider =
         platformInstallationIdProvider(scope)
 
@@ -39,11 +35,6 @@ class NetworkModule {
     ): HttpClient =
         HttpClient {
             expectSuccess = true
-
-            val backend = scope.get<DebugApiBackend>()
-            if (backend.enabled) {
-                install(DebugApiSubmissionGuard) { this.backend = backend }
-            }
 
             install(ApiClientMetadataPlugin) {
                 metadata = platformApiClientMetadata(scope, scope.get<InstallationIdProvider>().getOrCreate())

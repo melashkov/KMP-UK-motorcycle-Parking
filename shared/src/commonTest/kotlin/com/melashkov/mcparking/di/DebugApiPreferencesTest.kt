@@ -15,25 +15,24 @@ import kotlin.test.assertTrue
 
 class DebugApiPreferencesTest {
     @Test
-    fun releaseAlwaysUsesProductionEvenWithSavedLocalPreference() {
-        val store = MemoryPreferenceStoreStub()
-        store.putBoolean("local_development", true)
-        val preferences = DebugApiPreferences(store, isDebug = false)
+    fun unavailableLocalBackendUsesProductionEvenWithSavedLocalPreference() {
+        val store = MemoryPreferenceStoreStub().apply { putBoolean("local_development", true) }
+        val preferences = DebugApiPreferences(store, canSelectLocal = false)
+        val provider = apiUrlProvider(ApiEnvironment.AndroidEmulatorDevelopment) { preferences.local }
 
         assertFalse(preferences.selectLocal(true))
-        assertFalse(preferences.selectLocal(false))
-        assertFalse(preferences.local)
+        assertEquals(apiUrlProvider(ApiEnvironment.Production).baseUrl, provider.baseUrl)
         assertTrue(store.getBoolean("local_development"))
     }
 
     @Test
     fun successfulSelectionUpdatesTheCacheAndPersists() {
         val store = MemoryPreferenceStoreStub()
-        val preferences = DebugApiPreferences(store, isDebug = true)
+        val preferences = DebugApiPreferences(store, canSelectLocal = true)
         assertTrue(preferences.selectLocal(true))
         assertTrue(preferences.local)
         assertTrue(preferences.selectLocal(true))
-        assertTrue(DebugApiPreferences(store, isDebug = true).local)
+        assertTrue(DebugApiPreferences(store, canSelectLocal = true).local)
         assertTrue(preferences.selectLocal(false))
         assertFalse(preferences.local)
         assertFalse(store.getBoolean("local_development"))
@@ -47,7 +46,7 @@ class DebugApiPreferencesTest {
                 error("Write failed")
             }
         }
-        val preferences = DebugApiPreferences(store, isDebug = true)
+        val preferences = DebugApiPreferences(store, canSelectLocal = true)
 
         assertFalse(preferences.selectLocal(false))
         assertTrue(preferences.local)
@@ -55,7 +54,7 @@ class DebugApiPreferencesTest {
 
     @Test
     fun oneClientRoutesNewRequestsToTheSelectedBackend() = runTest {
-        val preferences = DebugApiPreferences(MemoryPreferenceStoreStub(), isDebug = true)
+        val preferences = DebugApiPreferences(MemoryPreferenceStoreStub(), canSelectLocal = true)
         val provider = apiUrlProvider(ApiEnvironment.AndroidEmulatorDevelopment) { preferences.local }
         val urls = mutableListOf<String>()
         val client = HttpClient(MockEngine { request ->

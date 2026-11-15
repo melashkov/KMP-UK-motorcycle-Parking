@@ -7,6 +7,7 @@ import com.melashkov.mcparking.ui.theme.ThemeMode
 import com.melashkov.mcparking.ui.theme.ThemePreferences
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -15,7 +16,7 @@ class SettingsViewModelTest {
     fun selectingThemeUpdatesTheSharedThemePreference() {
         val store = MemoryPreferenceStoreStub()
         val theme = ThemePreferences(store)
-        val viewModel = SettingsViewModel(theme, DebugApiPreferences(store, isDebug = false))
+        val viewModel = SettingsViewModel(theme, DebugApiPreferences(store, canSelectLocal = false))
 
         viewModel.selectTheme(ThemeMode.DARK)
 
@@ -36,7 +37,7 @@ class SettingsViewModelTest {
                 saved.putBoolean(key, value)
             }
         }
-        val viewModel = SettingsViewModel(ThemePreferences(store), DebugApiPreferences(store, isDebug = true))
+        val viewModel = SettingsViewModel(ThemePreferences(store), DebugApiPreferences(store, canSelectLocal = true))
 
         viewModel.selectBackend(true)
         viewModel.selectBackend(true)
@@ -49,12 +50,13 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun releaseSettingsDoNotOfferBackendSelection() {
+    fun settingsHideTheBackendChooserWhenLocalIsUnavailable() {
         val store = MemoryPreferenceStoreStub()
-        val viewModel = SettingsViewModel(ThemePreferences(store), DebugApiPreferences(store, isDebug = false))
+        val viewModel = SettingsViewModel(ThemePreferences(store), DebugApiPreferences(store, canSelectLocal = false))
 
         viewModel.selectBackend(true)
 
         assertNull(viewModel.localBackend.value)
+        assertFalse(store.getBoolean("local_development"))
     }
 }

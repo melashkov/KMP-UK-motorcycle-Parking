@@ -22,6 +22,6 @@ class PreferenceModule {
     internal fun provideDebugApiPreferences(scope: Scope): DebugApiPreferences =
         DebugApiPreferences(
             platformPreferenceStore(scope, PreferenceNamespace.DebugApi),
-            isDebug = platformIsDebugBuild(scope),
+            canSelectLocal = platformIsDebugBuild(scope) && platformSupportsLocalBackend(),
         )
 }

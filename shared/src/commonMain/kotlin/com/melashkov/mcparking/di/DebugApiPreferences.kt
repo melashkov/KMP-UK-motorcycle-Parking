@@ -5,7 +5,7 @@ import kotlin.concurrent.Volatile
 
 internal class DebugApiPreferences(
     private val store: PreferenceStore,
-    val isDebug: Boolean,
+    val canSelectLocal: Boolean,
 ) {
 
     @Volatile
@@ -13,13 +13,13 @@ internal class DebugApiPreferences(
         private set
 
     init {
-        if (isDebug) {
+        if (canSelectLocal) {
             local = store.getBoolean("local_development")
         }
     }
 
     fun selectLocal(value: Boolean): Boolean {
-        if (isDebug) {
+        if (canSelectLocal) {
             runCatching {
                 store.putBoolean("local_development", value)
                 local = value

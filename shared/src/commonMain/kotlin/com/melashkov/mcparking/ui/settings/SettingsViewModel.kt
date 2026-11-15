@@ -15,7 +15,7 @@ internal class SettingsViewModel(
 ) : ViewModel() {
     val themeMode = themePreferences.mode
 
-    private val _localBackend = MutableStateFlow(debugApiPreferences.local.takeIf { debugApiPreferences.isDebug })
+    private val _localBackend = MutableStateFlow(debugApiPreferences.local.takeIf { debugApiPreferences.canSelectLocal })
     val localBackend = _localBackend.asStateFlow()
 
     fun selectTheme(mode: ThemeMode) {

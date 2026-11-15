@@ -46,13 +46,14 @@ only Python 3, with no packages to install:
 python3 scripts/mock-api.py
 ```
 
-In a debug app, open **Settings → Debug API → Local development**. The next API
-request uses the selected backend. Existing map results stay visible until the
+In a debug build on the Android Emulator or iOS simulator, open
+**Settings → Debug API → Local development**. The next API request uses the
+selected backend. Existing map results stay visible until the
 next parking search. Select **Production** to switch back.
 Android uses `http://10.0.2.2:8080/api/` (the emulator's host alias); the iOS simulator
 uses `http://127.0.0.1:8080/api/`. The server binds only to the computer's loopback
-interface. Local development currently supports the Android emulator and iOS
-simulator.
+interface. On physical Android devices, Settings hides the Debug API section
+and the app uses Production.
 
 Each valid bounds search returns 10 randomly positioned, clearly labelled mock bays
 inside the requested area. Identical bounds produce identical bays, making repeated

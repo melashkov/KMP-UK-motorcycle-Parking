@@ -38,3 +38,5 @@ internal fun apiUrlProvider(
     }
 
 internal expect fun platformApiUrlProvider(scope: Scope): ApiUrlProvider
+
+internal expect fun platformSupportsLocalBackend(): Boolean

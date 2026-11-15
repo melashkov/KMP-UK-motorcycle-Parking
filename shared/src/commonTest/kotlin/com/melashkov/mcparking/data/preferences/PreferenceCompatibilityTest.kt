@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 class PreferenceCompatibilityTest {
     @Test
     fun themeReadsAndWritesTheExistingModeKey() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         assertEquals(ThemeMode.SYSTEM, ThemePreferences(store).mode.value)
         store.putString("theme_mode", "DARK")
         val preferences = ThemePreferences(store)
@@ -22,7 +22,7 @@ class PreferenceCompatibilityTest {
 
     @Test
     fun developerMessageReadsAndWritesTheExistingReleaseKey() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         val preferences = DeveloperMessagePreferences(store)
         assertEquals("", preferences.lastSeenRelease)
         store.putString("last_seen_release", "previous-release")

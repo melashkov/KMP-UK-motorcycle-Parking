@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.ui.settings
 
-import com.melashkov.mcparking.data.preferences.MemoryPreferenceStore
+import com.melashkov.mcparking.data.preferences.MemoryPreferenceStoreStub
 import com.melashkov.mcparking.data.preferences.PreferenceStore
 import com.melashkov.mcparking.di.DebugApiPreferences
 import com.melashkov.mcparking.ui.theme.ThemeMode
@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class SettingsViewModelTest {
     @Test
     fun selectingThemeUpdatesTheSharedThemePreference() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         val theme = ThemePreferences(store)
         val viewModel = SettingsViewModel(theme, DebugApiPreferences(store, isDebug = false))
 
@@ -26,7 +26,7 @@ class SettingsViewModelTest {
 
     @Test
     fun backendSelectionUpdatesOnlyAfterASuccessfulWrite() {
-        val saved = MemoryPreferenceStore()
+        val saved = MemoryPreferenceStoreStub()
         var failWrites = false
         var writes = 0
         val store = object : PreferenceStore by saved {
@@ -50,7 +50,7 @@ class SettingsViewModelTest {
 
     @Test
     fun releaseSettingsDoNotOfferBackendSelection() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         val viewModel = SettingsViewModel(ThemePreferences(store), DebugApiPreferences(store, isDebug = false))
 
         viewModel.selectBackend(true)

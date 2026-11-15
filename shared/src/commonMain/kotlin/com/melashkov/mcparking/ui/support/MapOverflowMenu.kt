@@ -68,9 +68,8 @@ internal fun MapOverflowMenu(
 
     if (feedbackVisible) FeedbackScreen(onDismiss = { feedbackVisible = false })
 
-    if (settingsVisible) {
-        SettingsRoute(onDismiss = { settingsVisible = false })
-    }
+    if (settingsVisible) SettingsRoute(onDismiss = { settingsVisible = false })
+
 
     if (page.isNotEmpty()) {
         ProjectInfoScreen(

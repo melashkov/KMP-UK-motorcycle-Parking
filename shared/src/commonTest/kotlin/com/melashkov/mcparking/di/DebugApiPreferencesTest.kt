@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.di
 
-import com.melashkov.mcparking.data.preferences.MemoryPreferenceStore
+import com.melashkov.mcparking.data.preferences.MemoryPreferenceStoreStub
 import com.melashkov.mcparking.data.preferences.PreferenceStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 class DebugApiPreferencesTest {
     @Test
     fun releaseAlwaysUsesProductionEvenWithSavedLocalPreference() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         store.putBoolean("local_development", true)
         val preferences = DebugApiPreferences(store, isDebug = false)
 
@@ -28,7 +28,7 @@ class DebugApiPreferencesTest {
 
     @Test
     fun successfulSelectionUpdatesTheCacheAndPersists() {
-        val store = MemoryPreferenceStore()
+        val store = MemoryPreferenceStoreStub()
         val preferences = DebugApiPreferences(store, isDebug = true)
         assertTrue(preferences.selectLocal(true))
         assertTrue(preferences.local)
@@ -41,7 +41,7 @@ class DebugApiPreferencesTest {
 
     @Test
     fun failedWriteKeepsThePreviousSelection() {
-        val savedPreferences = MemoryPreferenceStore().apply { putBoolean("local_development", true) }
+        val savedPreferences = MemoryPreferenceStoreStub().apply { putBoolean("local_development", true) }
         val store = object : PreferenceStore by savedPreferences {
             override fun putBoolean(key: String, value: Boolean) {
                 error("Write failed")
@@ -55,7 +55,7 @@ class DebugApiPreferencesTest {
 
     @Test
     fun oneClientRoutesNewRequestsToTheSelectedBackend() = runTest {
-        val preferences = DebugApiPreferences(MemoryPreferenceStore(), isDebug = true)
+        val preferences = DebugApiPreferences(MemoryPreferenceStoreStub(), isDebug = true)
         val provider = apiUrlProvider(ApiEnvironment.AndroidEmulatorDevelopment) { preferences.local }
         val urls = mutableListOf<String>()
         val client = HttpClient(MockEngine { request ->

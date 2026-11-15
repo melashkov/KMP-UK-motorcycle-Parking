@@ -1,6 +1,6 @@
 package com.melashkov.mcparking.data.preferences
 
-internal class MemoryPreferenceStore : PreferenceStore {
+internal class MemoryPreferenceStoreStub : PreferenceStore {
     private val values = mutableMapOf<String, Any>()
 
     override fun getString(key: String): String? = values[key] as String?

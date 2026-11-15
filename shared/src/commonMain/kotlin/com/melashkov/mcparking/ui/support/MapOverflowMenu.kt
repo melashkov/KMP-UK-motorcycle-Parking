@@ -15,7 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.melashkov.mcparking.ui.settings.SettingsRoute
+import com.melashkov.mcparking.ui.settings.SettingsScreen
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.*
@@ -68,8 +68,7 @@ internal fun MapOverflowMenu(
 
     if (feedbackVisible) FeedbackScreen(onDismiss = { feedbackVisible = false })
 
-    if (settingsVisible) SettingsRoute(onDismiss = { settingsVisible = false })
-
+    if (settingsVisible) SettingsScreen(onDismiss = { settingsVisible = false })
 
     if (page.isNotEmpty()) {
         ProjectInfoScreen(

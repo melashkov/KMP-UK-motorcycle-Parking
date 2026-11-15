@@ -11,17 +11,36 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.melashkov.mcparking.ui.theme.ThemeMode
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import ukmotorcycleparking.shared.generated.resources.*
+
+@Composable
+internal fun SettingsScreen(
+    onDismiss: () -> Unit,
+    viewModel: SettingsViewModel = koinViewModel(),
+) {
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val localBackend by viewModel.localBackend.collectAsStateWithLifecycle()
+    SettingsContent(
+        themeMode = themeMode,
+        localBackend = localBackend,
+        onThemeSelected = viewModel::selectTheme,
+        onBackendSelected = viewModel::selectBackend,
+        onDismiss = onDismiss,
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SettingsScreen(
+private fun SettingsContent(
     themeMode: ThemeMode,
     localBackend: Boolean?,
     onThemeSelected: (ThemeMode) -> Unit,

@@ -16,7 +16,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -202,9 +201,7 @@ class BaysMapViewModel(
         }
 
         searchJob = viewModelScope.launch {
-            val result = searchParkingBays(viewport)
-            ensureActive()
-            when (result) {
+            when (val result = searchParkingBays(viewport)) {
                 is SearchParkingResult.Success -> {
                     lastSearchedViewport = viewport
                     _uiState.update {

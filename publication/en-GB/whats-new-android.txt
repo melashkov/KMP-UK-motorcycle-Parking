@@ -1,0 +1,1 @@
+Fixed a crash that could happen when you turned on location on phones without a rotation sensor. This release requires Android 7.0 (API 24) or later. Android 6.0 (API 23) is no longer supported.

@@ -311,6 +311,7 @@ echo "Assigning versionCode $VERSION_CODE to '$TRACK'..."
 
 TRACK_BODY="$(
     jq -n \
+        --rawfile notes "$PROJECT_ROOT/publication/en-GB/whats-new-android.txt" \
         --arg track "$TRACK" \
         --arg versionCode "$VERSION_CODE" \
         '{
@@ -318,6 +319,7 @@ TRACK_BODY="$(
             releases: [
                 {
                     versionCodes: [$versionCode],
+                    releaseNotes: [{language: "en-GB", text: ($notes | rtrimstr("\n"))}],
                     status: "completed"
                 }
             ]

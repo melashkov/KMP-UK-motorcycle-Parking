@@ -79,11 +79,12 @@
     <string name="action_continue_to_map">Continue to map</string>
     <string name="action_add_parking_bay">Add parking bay</string>
     <string name="whats_new">What’s new</string>
-    <string name="release_title">Search places has been added</string>
+    <string name="release_title">What’s new in 3.0.3</string>
     <string name="release_map_title">A new map</string>
     <string name="release_map_body">Rebuilt with OpenStreetMap as Google’s mapping costs changed. The same community parking data is still here.</string>
     <string name="release_search_title">Search for places</string>
-    <string name="release_search_body">Find UK towns and streets, plus postcodes in Great Britain, using the search button on the map.</string>
+    <string name="release_location_body">Android: fixed a crash when using location on phones without a rotation sensor. Android 7.0 (API 24) or later is required.</string>
+    <string name="release_cursor_body">iOS: the cursor now stays in place when you edit a place search.</string>
     <string name="places_search_title">Search places</string>
     <string name="places_clear_search">Clear search</string>
     <string name="places_search_hint">City, street or postcode</string>

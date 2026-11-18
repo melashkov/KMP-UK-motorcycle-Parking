@@ -31,7 +31,7 @@ android {
         versionCode = providers.gradleProperty("releaseVersionCode")
             .map(String::toInt)
             .getOrElse(1678468730)
-        versionName = "3.0.2"
+        versionName = "3.0.3"
         // Only advertise ABIs that can load both MapLibre native libraries.
         ndk.abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
     }

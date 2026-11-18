@@ -29,6 +29,13 @@ def wrap(draw,text,f,maxw):
   result.append(line)
  return result
 
+def rounded_mask(size,radius):
+ scale=3
+ width,height=(length*scale for length in size)
+ mask=Image.new('L',(width,height))
+ ImageDraw.Draw(mask).rounded_rectangle((0,0,width-1,height-1),radius=radius*scale,fill=255)
+ return mask.resize(size,Image.Resampling.LANCZOS)
+
 def compose(source,size,title,subtitle,number):
  w,h=size; s=w/1080
  canvas=Image.new('RGB',size,NAVY); d=ImageDraw.Draw(canvas)
@@ -47,9 +54,13 @@ def compose(source,size,title,subtitle,number):
  scale=min(aw/shot.width,ah/shot.height)
  shot=shot.resize((round(shot.width*scale),round(shot.height*scale)),Image.Resampling.LANCZOS)
  x=(w-shot.width)//2; sy=top+(ah-shot.height)//2
- frame=(x-int(10*s),sy-int(10*s),x+shot.width+int(10*s),sy+shot.height+int(10*s))
- d.rounded_rectangle(frame,radius=int(34*s),fill='#8294A2')
- canvas.paste(shot,(x,sy))
+ # The captured phone display has a corner radius of about 10% of its width.
+ radius=round(shot.width*.10)
+ border=round(10*s)
+ frame_size=(shot.width+2*border,shot.height+2*border)
+ canvas.paste('#8294A2',(x-border,sy-border,x+shot.width+border,sy+shot.height+border),
+              rounded_mask(frame_size,radius+border))
+ canvas.paste(shot,(x,sy),rounded_mask(shot.size,radius))
  d=ImageDraw.Draw(canvas)
  d.text((pad,h-int(36*s)),f'{number:02d}',font=font(int(18*s)),fill=MUTED)
  return canvas

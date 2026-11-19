@@ -75,8 +75,8 @@ internal fun ProjectInfoScreen(
             ) {
                 if (showReleaseNotes) {
                     Text(stringResource(Res.string.release_title), style = MaterialTheme.typography.headlineMedium)
-                    Text(stringResource(Res.string.release_search_body))
-                    Text(stringResource(Res.string.release_feedback_body))
+                    Text(stringResource(Res.string.release_location_body))
+                    Text(stringResource(Res.string.release_cursor_body))
                 } else {
                     Text(stringResource(Res.string.developer_message_history))
                     Text(stringResource(Res.string.developer_message_thanks))

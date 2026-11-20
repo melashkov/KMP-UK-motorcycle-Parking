@@ -29,7 +29,7 @@ the release. Upload failures for available symbols also stop the release.
 To prepare available symbols locally without publishing:
 
 ```sh
-python3 scripts/prepare-android-symbols.py androidApp/build/outputs/bundle/release/androidApp-release.aab
+python3 scripts/prepare-android-symbols.py androidApp/build/outputs/bundle/prodRelease/androidApp-prod-release.aab
 ```
 
 The command prints the archive path on stdout, or nothing when no symbols are available.
@@ -48,7 +48,7 @@ available in debug builds; the app's preview annotations are compile-only. R8 is
 The shared UI uses the Material Icons library; R8 removes unused icon classes from Android release
 builds. Unused shared drawable assets have been removed.
 
-Release builds generate `androidApp/build/outputs/mapping/release/mapping.txt`; Gradle also
+Release builds generate `androidApp/build/outputs/mapping/prodRelease/mapping.txt`; Gradle also
 embeds this mapping in the AAB for Google Play to deobfuscate crashes. The release script verifies
 the embedded mapping and relies on Play to import it from the bundle. Keep the mapping for the
 exact build when analyzing crashes locally. Test map loading, parking details, the parking report

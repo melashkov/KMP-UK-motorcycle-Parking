@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="debug_api_title">Debug API</string>
-    <string name="debug_api_production">Production</string>
-    <string name="debug_api_local">Local development (port 8080)</string>
     <string name="action_add_bay">Add bay</string>
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>

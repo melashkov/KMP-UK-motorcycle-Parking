@@ -3,6 +3,7 @@ package com.melashkov.mcparking.di
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.http.HttpStatusCode
@@ -76,34 +77,11 @@ class ApiClientMetadataTest {
         try { client.get("bounds.php") } finally { client.close() }
     }
 
-    @Test
-    fun redirectToTheNewBackendDoesNotInheritMetadataFromAnEarlierRequest() = runTest {
-        var base = "http://10.0.2.2:8080/api/"
-        val installationIds = mutableListOf<String?>()
-        val client = client(MockEngine { request ->
-            installationIds += request.headers["X-Installation-ID"]
-            if (request.url.host == "10.0.2.2") {
-                base = "https://melashkov.com/api/"
-                respond("", HttpStatusCode.Found, headersOf("Location", base + "bounds.php"))
-            } else {
-                respond("{}")
-            }
-        }, currentBaseUrl = { base })
-        try {
-            client.get("bounds.php")
-            client.get("bounds.php")
-            assertEquals(listOf(android.installationId, null, android.installationId), installationIds)
-        } finally {
-            client.close()
+    private fun client(engine: MockEngine, values: ApiClientMetadata = android) = HttpClient(engine) {
+        install(ApiClientMetadataPlugin) {
+            metadata = values
+            baseUrl = "https://melashkov.com/api/"
         }
-    }
-
-    private fun client(
-        engine: MockEngine,
-        values: ApiClientMetadata = android,
-        currentBaseUrl: () -> String = { "https://melashkov.com/api/" },
-    ) = HttpClient(engine) {
-        install(ApiClientMetadataPlugin) { metadata = values }
-        apiDefaultRequest(currentBaseUrl)
+        defaultRequest { url("https://melashkov.com/api/") }
     }
 }

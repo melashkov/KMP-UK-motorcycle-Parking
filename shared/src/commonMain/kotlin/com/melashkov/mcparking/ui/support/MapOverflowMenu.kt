@@ -1,5 +1,6 @@
 package com.melashkov.mcparking.ui.support
 
+import com.melashkov.mcparking.ui.theme.SettingsScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocationAlt
@@ -15,9 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.melashkov.mcparking.ui.settings.SettingsScreen
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import ukmotorcycleparking.shared.generated.resources.*
 
 @Composable
@@ -25,7 +24,7 @@ internal fun MapOverflowMenu(
     onAddBay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val preferences = koinInject<DeveloperMessagePreferences>()
+    val preferences = rememberDeveloperMessagePreferences()
     var page by rememberSaveable {
         mutableStateOf(if (preferences.lastSeenRelease != CurrentReleaseId) "news" else "")
     }

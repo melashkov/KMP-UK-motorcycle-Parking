@@ -18,13 +18,13 @@ maps, Ktor handles API requests, and Koin handles dependency injection.
 Open the repository in Android Studio and sync Gradle. CI uses JDK 21 and the
 project compiles against Android SDK 37.
 
-Select `debug` in **View → Tool Windows → Build Variants**, then run `androidApp`.
-By default this uses the production API and works on an emulator or physical device.
+Select `prodDebug` in **View → Tool Windows → Build Variants**, then run `androidApp`.
+This uses the production API and works on an emulator or physical device.
 
 To build an APK from the command line:
 
 ```sh
-./gradlew :androidApp:assembleDebug
+./gradlew :androidApp:assembleProdDebug
 ```
 
 ### iOS
@@ -35,32 +35,22 @@ in Xcode and run the `iosApp` scheme. CI uses Xcode 26.3; the deployment target 
 The Java path in [Config.xcconfig](../iosApp/Configuration/Config.xcconfig) points to
 Android Studio's bundled JDK. Adjust it if your installation is elsewhere.
 
-Both platforms default to the production API. Release builds always use production.
+iOS uses the production API in both debug and release builds.
 
 ### Local mock API
 
-Contributors can run a synthetic API without access to the private backend. It needs
-only Python 3, with no packages to install:
+Run the synthetic parking API with Python 3:
 
 ```sh
 python3 scripts/mock-api.py
 ```
 
-In a debug build on the Android Emulator or iOS simulator, open
-**Settings → Debug API → Local development**. The next API request uses the
-selected backend. Existing map results stay visible until the
-next parking search. Select **Production** to switch back.
-Android uses `http://10.0.2.2:8080/api/` (the emulator's host alias); the iOS simulator
-uses `http://127.0.0.1:8080/api/`. The server binds only to the computer's loopback
-interface. On physical Android devices, Settings hides the Debug API section
-and the app uses Production.
-
-Each valid bounds search returns 10 randomly positioned, clearly labelled mock bays
-inside the requested area. Identical bounds produce identical bays, making repeated
-checks reproducible. Edit `scripts/mock-api.py` to change the sample data. Place
-search returns a synthetic London result; reports and feedback return success but
-are discarded. Nothing is forwarded to production or saved. Map tiles still need
-internet access. Stop the server with Ctrl+C.
+Select `devDebug` in Android Studio and run the app on the Android Emulator.
+This variant connects to the server at `http://10.0.2.2:8080/api/`.
+The server listens on the host’s loopback interface. Repeating a search with
+the same bounds returns the same ten mock bays. Place search returns a synthetic
+London result, and the server discards reports and feedback. Map tiles still
+require internet access.
 
 ### Tests
 
@@ -73,13 +63,13 @@ python3 -m unittest discover -s scripts/tests -v
 ```
 
 The [Tests and builds workflow](../.github/workflows/build.yml) runs shared tests,
-builds the Android debug app, and builds the iOS simulator app on pushes and
+builds both Android debug variants, and builds the iOS simulator app on pushes and
 pull requests to `main`. Test reports, APKs and the simulator app are saved as artifacts.
 
 ### Android releases
 
 ```sh
-./gradlew :androidApp:bundleRelease
+./gradlew :androidApp:bundleProdRelease
 ```
 
 Signing requires `RELEASE_KEYSTORE`, `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`

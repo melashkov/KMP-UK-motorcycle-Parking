@@ -4,23 +4,44 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.koin.compose.koinInject
+import androidx.compose.runtime.*
 import org.maplibre.compose.style.BaseStyle
 
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
+internal interface ThemePreferences {
+    var mode: String
+}
+
+@Composable
+internal expect fun rememberThemePreferences(): ThemePreferences
+
+internal data class ThemeSettings(val mode: ThemeMode, val setMode: (ThemeMode) -> Unit)
+internal val LocalThemeSettings = staticCompositionLocalOf { ThemeSettings(ThemeMode.SYSTEM) {} }
 internal val LocalDarkTheme = staticCompositionLocalOf { false }
+
+internal fun themeModeFromStorage(value: String): ThemeMode =
+    ThemeMode.entries.firstOrNull { it.name == value } ?: ThemeMode.SYSTEM
+
+internal fun ThemeMode.isDark(systemDark: Boolean): Boolean = when (this) {
+    ThemeMode.SYSTEM -> systemDark
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+}
 
 @Composable
 internal fun ParkingAppTheme(content: @Composable () -> Unit) {
-    val preferences = koinInject<ThemePreferences>()
-    val mode by preferences.mode.collectAsStateWithLifecycle()
+    val preferences = rememberThemePreferences()
+    var mode by remember { mutableStateOf(themeModeFromStorage(preferences.mode)) }
     val dark = mode.isDark(isSystemInDarkTheme())
     ApplyPlatformTheme(dark, mode == ThemeMode.SYSTEM)
-    CompositionLocalProvider(LocalDarkTheme provides dark) {
+    CompositionLocalProvider(
+        LocalDarkTheme provides dark,
+        LocalThemeSettings provides ThemeSettings(mode) {
+            preferences.mode = it.name
+            mode = it
+        },
+    ) {
         MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme(), content = content)
     }
 }

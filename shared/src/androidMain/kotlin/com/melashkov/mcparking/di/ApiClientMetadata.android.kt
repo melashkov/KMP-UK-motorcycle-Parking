@@ -3,9 +3,12 @@ package com.melashkov.mcparking.di
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.AtomicFile
 import org.koin.core.scope.Scope
+import java.io.File
+import java.util.UUID
 
-internal actual fun platformApiClientMetadata(scope: Scope, installationId: String): ApiClientMetadata {
+internal actual fun platformApiClientMetadata(scope: Scope): ApiClientMetadata {
     val context = scope.get<Context>().applicationContext
     val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
@@ -25,6 +28,26 @@ internal actual fun platformApiClientMetadata(scope: Scope, installationId: Stri
         appVersionCode = versionCode.toString(),
         osVersion = Build.VERSION.RELEASE,
         androidApiLevel = Build.VERSION.SDK_INT,
-        installationId = installationId,
+        installationId = ApiInstallationId.get(context),
     )
+}
+
+private object ApiInstallationId {
+    @Synchronized
+    fun get(context: Context): String {
+        // Excluded from backup and device transfer; updates keep the ID, reinstalls reset it.
+        val file = AtomicFile(File(context.noBackupFilesDir, "api-installation-id"))
+        val existing = runCatching { UUID.fromString(file.readFully().toString(Charsets.UTF_8)).toString() }.getOrNull()
+        if (existing != null) return existing
+        val id = UUID.randomUUID().toString()
+        val output = file.startWrite()
+        try {
+            output.write(id.toByteArray(Charsets.UTF_8))
+            file.finishWrite(output)
+        } catch (error: Exception) {
+            file.failWrite(output)
+            throw error
+        }
+        return id
+    }
 }

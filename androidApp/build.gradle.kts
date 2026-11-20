@@ -35,6 +35,18 @@ android {
         // Only advertise ABIs that can load both MapLibre native libraries.
         ndk.abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
     }
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["apiEnvironment"] = "development"
+        }
+        create("prod") {
+            dimension = "environment"
+            manifestPlaceholders["apiEnvironment"] = "production"
+        }
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -79,5 +91,15 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+androidComponents {
+    beforeVariants(
+        selector()
+            .withBuildType("release")
+            .withFlavor("environment" to "dev"),
+    ) { variant ->
+        variant.enable = false
     }
 }

@@ -76,6 +76,7 @@ class ApiDebugLoggerTest {
         val client = HttpClient(MockEngine { respond("response-body-sentinel") }) {
             install(ApiClientMetadataPlugin) {
                 metadata = ApiClientMetadata("android", "3.0-dev", "1678468730", "17", 37, id)
+                baseUrl = "https://melashkov.com/api/"
             }
             install(Logging) {
                 this.logger = object : Logger {
@@ -83,7 +84,7 @@ class ApiDebugLoggerTest {
                 }
                 level = LogLevel.HEADERS
             }
-            apiDefaultRequest { "https://melashkov.com/api/" }
+            defaultRequest { url("https://melashkov.com/api/") }
         }
         try {
             client.get("bounds.php") { headers.append("Authorization", "Bearer secret-token") }

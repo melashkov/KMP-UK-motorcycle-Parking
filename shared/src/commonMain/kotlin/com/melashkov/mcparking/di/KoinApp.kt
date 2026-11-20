@@ -9,7 +9,7 @@ import org.koin.dsl.koinConfiguration
 import org.koin.plugin.module.dsl.koinConfiguration as generatedKoinConfiguration
 
 @KoinApplication(
-    modules = [AppModule::class, NetworkModule::class, PreferenceModule::class]
+    modules = [AppModule::class, NetworkModule::class]
 )
 class KoinApp
 

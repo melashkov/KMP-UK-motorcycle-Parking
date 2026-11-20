@@ -201,9 +201,9 @@ echo
 echo "Building signed release bundle..."
 echo
 
-./gradlew ":${ANDROID_MODULE}:bundleRelease" "-PreleaseVersionCode=$RELEASE_VERSION_CODE"
+./gradlew ":${ANDROID_MODULE}:bundleProdRelease" "-PreleaseVersionCode=$RELEASE_VERSION_CODE"
 
-AAB_DIRECTORY="$MODULE_DIR/build/outputs/bundle/release"
+AAB_DIRECTORY="$MODULE_DIR/build/outputs/bundle/prodRelease"
 
 if [[ ! -d "$AAB_DIRECTORY" ]]; then
     echo

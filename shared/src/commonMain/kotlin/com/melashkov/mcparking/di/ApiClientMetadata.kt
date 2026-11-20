@@ -1,12 +1,9 @@
 package com.melashkov.mcparking.di
 
-import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.api.SendingRequest
 import io.ktor.client.plugins.api.createClientPlugin
-import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.Url
 import io.ktor.http.encodedPath
-import io.ktor.util.AttributeKey
 import org.koin.core.scope.Scope
 
 internal data class ApiClientMetadata(
@@ -29,26 +26,17 @@ internal data class ApiClientMetadata(
 
 internal class ApiClientMetadataConfig {
     lateinit var metadata: ApiClientMetadata
-}
-
-private val ApiBaseUrl = AttributeKey<Url>("ApiBaseUrl")
-
-internal fun HttpClientConfig<*>.apiDefaultRequest(baseUrl: () -> String) {
-    defaultRequest {
-        val base = Url(baseUrl())
-        url(base.toString())
-        setAttributes { put(ApiBaseUrl, base) }
-    }
+    lateinit var baseUrl: String
 }
 
 internal val ApiClientMetadataPlugin = createClientPlugin("ApiClientMetadata", ::ApiClientMetadataConfig) {
+    val api = Url(pluginConfig.baseUrl)
     val values = pluginConfig.metadata.headers
     on(SendingRequest) { request, _ ->
         // Recheck redirects too: installation metadata must stay on our API.
         values.keys.forEach { request.headers.remove(it) }
         request.headers.remove("X-Android-API-Level")
-        val api = request.attributes.getOrNull(ApiBaseUrl)
-        if (api != null && request.url.protocol == api.protocol && request.url.host == api.host &&
+        if (request.url.protocol == api.protocol && request.url.host == api.host &&
             request.url.port == api.port && request.url.encodedPath.startsWith(api.encodedPath)
         ) {
             values.forEach { (name, value) -> request.headers.append(name, value) }
@@ -56,4 +44,4 @@ internal val ApiClientMetadataPlugin = createClientPlugin("ApiClientMetadata", :
     }
 }
 
-internal expect fun platformApiClientMetadata(scope: Scope, installationId: String): ApiClientMetadata
+internal expect fun platformApiClientMetadata(scope: Scope): ApiClientMetadata

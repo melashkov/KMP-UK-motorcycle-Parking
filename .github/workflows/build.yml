@@ -38,6 +38,9 @@ jobs:
       - name: Run shared tests on Android
         run: ./gradlew :shared:testAndroidHostTest --stacktrace
 
+      - name: Test the local mock API
+        run: python3 -m unittest discover -s scripts/tests -p test_mock_api.py -v
+
       - name: Build Android debug APKs
         run: ./gradlew :androidApp:assembleDevDebug :androidApp:assembleProdDebug --stacktrace
 

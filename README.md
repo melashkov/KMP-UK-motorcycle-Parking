@@ -92,7 +92,8 @@ retained as workflow artifacts.
 For Android, open the repository in Android Studio, sync Gradle, select `prodDebug`
 in **Build Variants**, and run `androidApp`. For iOS, open
 [iosApp/iosApp.xcodeproj](./iosApp/iosApp.xcodeproj) in Xcode on an Apple Silicon Mac.
-Both use the production API.
+Both use the production API. To use the local Python mock API on the Android
+emulator, follow the [local setup instructions](./docs/development.md#local-mock-api).
 
 See the [development guide](./docs/development.md) for toolchain requirements,
 build commands and tests.

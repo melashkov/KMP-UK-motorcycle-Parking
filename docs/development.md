@@ -37,6 +37,21 @@ Android Studio's bundled JDK. Adjust it if your installation is elsewhere.
 
 iOS uses the production API in both debug and release builds.
 
+### Local mock API
+
+Run the synthetic parking API with Python 3:
+
+```sh
+python3 scripts/mock-api.py
+```
+
+Select `devDebug` in Android Studio and run the app on the Android Emulator.
+This variant connects to the server at `http://10.0.2.2:8080/api/`.
+The server listens on the host’s loopback interface. Repeating a search with
+the same bounds returns the same ten mock bays. Place search returns a synthetic
+London result, and the server discards reports and feedback. Map tiles still
+require internet access.
+
 ### Tests
 
 Run from the repository root. iOS tests require an Apple Silicon Mac and Xcode.
